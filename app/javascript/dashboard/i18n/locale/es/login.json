@@ -1,10 +1,10 @@
 {
   "LOGIN": {
-    "TITLE": "Iniciar sesión en Chatwoot",
+    "TITLE": "¡Bienvenido a Dodo!",
     "EMAIL": {
-      "LABEL": "E-mail",
-      "PLACEHOLDER": "ejemplo{'@'}nombredeempresa.com",
-      "ERROR": "Por favor, introduzca una dirección de correo válida"
+      "LABEL": "Correo electrónico",
+      "PLACEHOLDER": "ejemplo{'@'}dominio.com",
+      "ERROR": "Por favor, introduzca una dirección de correo registrado en Dodo válida"
     },
     "PASSWORD": {
       "LABEL": "Contraseña",
@@ -12,12 +12,12 @@
     },
     "API": {
       "SUCCESS_MESSAGE": "Inicio de sesión exitoso",
-      "ERROR_MESSAGE": "No se pudo conectar al servidor Woot, por favor inténtalo de nuevo más tarde",
+      "ERROR_MESSAGE": "No se pudo conectar al servidor de credenciales de Dodo, por favor inténtalo de nuevo más tarde",
       "UNAUTH": "Nombre de usuario / Contraseña incorrecto. Inténtelo de nuevo"
     },
     "OAUTH": {
       "GOOGLE_LOGIN": "Iniciar sesión con Google",
-      "BUSINESS_ACCOUNTS_ONLY": "Por favor, utiliza el correo electrónico de tu empresa para iniciar sesión",
+      "BUSINESS_ACCOUNTS_ONLY": "Por favor, utiliza el correo electrónico registrado en Dodo para iniciar sesión",
       "NO_ACCOUNT_FOUND": "No pudimos encontrar una cuenta para tu dirección de correo electrónico."
     },
     "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",

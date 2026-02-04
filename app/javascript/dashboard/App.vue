@@ -19,6 +19,8 @@ import {
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { LocalStorage } from 'shared/helpers/localStorage';
+import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 
 export default {
   name: 'App',
@@ -78,7 +80,7 @@ export default {
   },
   mounted() {
     this.initializeColorTheme();
-    this.listenToThemeChanges();
+    // this.listenToThemeChanges();
     // If user locale is set, use it; otherwise use account locale
     this.setLocale(
       this.uiSettings?.locale || window.chatwootConfig.selectedLocale
@@ -91,7 +93,8 @@ export default {
   },
   methods: {
     initializeColorTheme() {
-      setColorTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+      LocalStorage.set(LOCAL_STORAGE_KEYS.COLOR_SCHEME, 'dark');
+      setColorTheme(true);
     },
     listenToThemeChanges() {
       const mql = window.matchMedia('(prefers-color-scheme: dark)');

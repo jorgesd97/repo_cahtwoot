@@ -1,5 +1,8 @@
 <script>
 import SnackbarContainer from './components/SnackBar/Container.vue';
+import { LocalStorage } from 'shared/helpers/localStorage';
+import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
+import { setColorTheme } from 'dashboard/helper/themeHelper'; // or correct relative path used there
 
 export default {
   components: { SnackbarContainer },
@@ -7,34 +10,37 @@ export default {
     return { theme: 'light' };
   },
   mounted() {
-    this.setColorTheme();
-    this.listenToThemeChanges();
-    this.setLocale(window.chatwootConfig.selectedLocale);
+    this.forceDarkTheme();
+    this.setLocale('es'); // ✅ force Spanish
+    // this.listenToThemeChanges();
   },
   methods: {
-    setColorTheme() {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        this.theme = 'dark';
-        document.documentElement.classList.add('dark');
-      } else {
-        this.theme = 'light';
-        document.documentElement.classList.remove('dark');
-      }
+    // ✅ NEW: force + persist dark mode everywhere (Chrome/Firefox/etc.)
+    forceDarkTheme() {
+      // Persist preference so Chatwoot never treats it as "auto"
+      LocalStorage.set(LOCAL_STORAGE_KEYS.COLOR_SCHEME, 'dark');
+
+      // Apply using the shared helper (adds body.dark + sets color-scheme)
+      setColorTheme(true);
+
+      // Also keep v3's existing class behavior consistent
+      this.theme = 'dark';
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      document.documentElement.style.setProperty('color-scheme', 'dark');
     },
+
+    // (Optional) keep this if you want OS to change theme automatically.
+    // If you want forced dark always, leave it unused.
     listenToThemeChanges() {
       const mql = window.matchMedia('(prefers-color-scheme: dark)');
-
-      mql.onchange = e => {
-        if (e.matches) {
-          this.theme = 'dark';
-          document.documentElement.classList.add('dark');
-        } else {
-          this.theme = 'light';
-          document.documentElement.classList.remove('dark');
-        }
+      mql.onchange = () => {
+        // If you still want to keep forced dark, just re-apply:
+        this.forceDarkTheme();
       };
     },
-    setLocale(locale) {
+    setLocale(locale = 'es') {
+      // ✅ default to Spanish even if called without arg
       this.$root.$i18n.locale = locale;
     },
   },

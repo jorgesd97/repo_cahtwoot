@@ -325,7 +325,7 @@ export default {
             lg
             type="submit"
             data-testid="submit_button"
-            class="w-full"
+            class="w-full dodo-login-button"
             :tabindex="3"
             :label="$t('LOGIN.SUBMIT')"
             :disabled="loginApi.showLoading"
@@ -339,3 +339,54 @@ export default {
     </section>
   </main>
 </template>
+
+<style scoped>
+.dodo-login-button {
+  background: #ffffff !important;
+  color: #000 !important;
+
+  /* ✅ bold text */
+  font-weight: 600 !important;
+
+  border-radius: 9999px !important;
+
+  /* ✅ dimmer border + softer glow */
+  border: 1px solid rgba(0, 245, 160, 0.22) !important;
+  box-shadow:
+    0 0 0 2px rgba(0, 245, 160, 0.05),
+    0 0 10px rgba(0, 245, 160, 0.12) !important;
+
+  /* ✅ ULTRA slow (hover-in) */
+  transition-property: background, box-shadow, filter, transform;
+  transition-duration: 1600ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dodo-login-button :deep(*) {
+  color: #000 !important;
+  font-weight: 600 !important; /* bold label inside */
+}
+
+/* ✅ Hover state */
+.dodo-login-button:hover {
+  background: linear-gradient(90deg, #00f5a0 0%, #00d2ff 100%) !important;
+
+  /* still subtle */
+  box-shadow:
+    0 0 0 2px rgba(0, 245, 160, 0.045),
+    0 0 14px rgba(0, 245, 160, 0.16) !important;
+
+  filter: brightness(1.01);
+  transform: translateY(-1px);
+
+  /* ✅ ULTRA slow (hover-out uses this value) */
+  transition-duration: 2400ms;
+}
+
+.dodo-login-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(0, 210, 255, 0.16),
+    0 0 14px rgba(0, 245, 160, 0.16) !important;
+}
+</style>

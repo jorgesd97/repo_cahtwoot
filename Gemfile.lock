@@ -330,6 +330,7 @@ GEM
       googleauth (~> 1)
     ffi (1.17.2)
     ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x64-mingw-ucrt)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi-compiler (1.0.1)
@@ -412,6 +413,9 @@ GEM
       google-protobuf (>= 3.25, < 5.0)
       googleapis-common-protos-types (~> 1.0)
     grpc (1.72.0-arm64-darwin)
+      google-protobuf (>= 3.25, < 5.0)
+      googleapis-common-protos-types (~> 1.0)
+    grpc (1.72.0-x64-mingw-ucrt)
       google-protobuf (>= 3.25, < 5.0)
       googleapis-common-protos-types (~> 1.0)
     grpc (1.72.0-x86_64-darwin)
@@ -586,6 +590,8 @@ GEM
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     nokogiri (1.18.9-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x64-mingw-ucrt)
       racc (~> 1.4)
     nokogiri (1.18.9-x86_64-darwin)
       racc (~> 1.4)
@@ -932,7 +938,6 @@ GEM
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
     squasher (0.7.2)
-    stackprof (0.2.25)
     statsd-ruby (1.5.0)
     stripe (18.0.1)
     telephone_number (1.4.20)
@@ -1010,6 +1015,7 @@ PLATFORMS
   arm64-darwin-21
   arm64-darwin-22
   ruby
+  x64-mingw-ucrt
   x86_64-darwin-18
   x86_64-darwin-20
   x86_64-darwin-21
@@ -1145,7 +1151,6 @@ DEPENDENCIES
   spring
   spring-watcher-listen
   squasher
-  stackprof
   stripe (~> 18.0)
   telephone_number
   test-prof
@@ -1164,7 +1169,7 @@ DEPENDENCIES
   working_hours
 
 RUBY VERSION
-   ruby 3.4.4p34
+   ruby 3.4.6p54
 
 BUNDLED WITH
    2.5.16

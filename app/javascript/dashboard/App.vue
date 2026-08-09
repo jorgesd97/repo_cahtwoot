@@ -172,5 +172,3 @@ export default {
   margin-bottom: 0px !important;
 }
 </style>
-
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>

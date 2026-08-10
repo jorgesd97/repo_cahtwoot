@@ -28,5 +28,6 @@
     "ecmel.vscode-html-css",
     // Tailwind CSS Intellisense
     "bradlc.vscode-tailwindcss",
+    "moonshot-ai.kimi-code",
   ]
 }

@@ -3,7 +3,7 @@ class Captain::Documents::ScheduleSyncsJob < ApplicationJob
 
   DEFAULT_PER_ACCOUNT_BATCH_LIMIT = 50
   DEFAULT_GLOBAL_BATCH_LIMIT = 1000
-  SYNC_STALE_TIMEOUT = Captain::Document::SYNC_STALE_TIMEOUT
+  #SYNC_STALE_TIMEOUT = Captain::Document::SYNC_STALE_TIMEOUT
   DAILY_SYNC_JITTER = 4.hours
   WEEKLY_SYNC_JITTER = 1.day
   MONTHLY_SYNC_JITTER = 4.days
@@ -60,7 +60,8 @@ class Captain::Documents::ScheduleSyncsJob < ApplicationJob
     syncing = Captain::Document.sync_statuses[:syncing]
     synced = Captain::Document.sync_statuses[:synced]
     failed = Captain::Document.sync_statuses[:failed]
-    stale_cutoff = SYNC_STALE_TIMEOUT.ago
+    stale_cutoff = 2.hours.ago
+    #SYNC_STALE_TIMEOUT.ago
     # The scheduler runs at predictable plan windows. Use a wider due window so
     # jittered executions do not miss the next window just because they finished later.
     sync_due_before = due_window(interval).ago

@@ -229,6 +229,7 @@
   },
   "SIDEBAR_ITEMS": {
     "CHANGE_AVAILABILITY_STATUS": "Cambiar",
+    "TIENDA_ORDENES": "Tienda & Órdenes",
     "CHANGE_ACCOUNTS": "Cambiar de cuenta",
     "SWITCH_ACCOUNT": "Cambiar de cuenta",
     "CONTACT_SUPPORT": "Contactar a soporte",

@@ -303,6 +303,13 @@ const menuItems = computed(() => {
       ],
     },
     {
+      name: 'Tienda',
+      label: t('SIDEBAR.TIENDA_ORDENES'),
+      icon: 'i-lucide-store',
+      to: accountScopedRoute('tienda_catalogo'),
+      activeOn: ['tienda_catalogo'],
+    },
+    {
       name: 'Captain',
       icon: 'i-woot-captain',
       label: t('SIDEBAR.CAPTAIN'),

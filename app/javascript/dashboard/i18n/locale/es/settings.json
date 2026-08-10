@@ -295,6 +295,7 @@
   },
   "SIDEBAR": {
     "NO_ITEMS": "No hay elementos",
+    "TIENDA_ORDENES": "Tienda & Órdenes",
     "CURRENTLY_VIEWING_ACCOUNT": "Visualizando:",
     "SWITCH": "Cambiar",
     "INBOX_VIEW": "Vista del buzón",

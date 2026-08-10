@@ -41,13 +41,12 @@
 
     <!-- TOOLBAR -->
     <div class="px-8 py-4 flex justify-between items-center">
-      <div class="relative w-64">
-        <span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
+      <div class="w-64">
         <input 
           v-model="searchQuery"
           type="text" 
-          placeholder="Buscar producto..." 
-          class="bg-[#151718] border border-[#2A2E33] text-white text-sm rounded w-full py-1.5 pl-9 pr-3 focus:border-teal-500 focus:outline-none"
+          placeholder="🔍 Buscar producto..." 
+          class="bg-[#151718] border border-[#2A2E33] text-white text-sm rounded w-full py-1.5 px-3 focus:border-teal-500 focus:outline-none"
         />
       </div>
       <button 
@@ -244,7 +243,7 @@ export default {
     },
     async fetchProducts() {
       try {
-        const { data } = await ProductAPI.getProducts(this.currentAccountId);
+        const { data } = await ProductAPI.getProducts();
         this.products = data;
       } catch (e) {
         console.error('Error cargando productos:', e);
@@ -267,9 +266,9 @@ export default {
     async saveProduct() {
       try {
         if (this.editingProduct) {
-          await ProductAPI.updateProduct(this.currentAccountId, this.productForm.id, this.productForm);
+          await ProductAPI.updateProduct(this.productForm.id, this.productForm);
         } else {
-          await ProductAPI.createProduct(this.currentAccountId, this.productForm);
+          await ProductAPI.createProduct(this.productForm);
         }
         this.closeProductModal();
         this.fetchProducts();

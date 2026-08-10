@@ -24,7 +24,7 @@
           class="text-gray-400 hover:text-white p-1.5 bg-[#212529] rounded border border-[#2A2E33]"
           title="Editar Meta"
         >
-          <i class="fas fa-edit text-sm"></i>
+          ✏️
         </button>
       </div>
     </div>
@@ -42,7 +42,7 @@
     <!-- TOOLBAR -->
     <div class="px-8 py-4 flex justify-between items-center">
       <div class="relative w-64">
-        <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
+        <span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
         <input 
           v-model="searchQuery"
           type="text" 
@@ -54,7 +54,7 @@
         @click="openProductModal()"
         class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2"
       >
-        <i class="fas fa-plus"></i> Nuevo Producto
+        + Nuevo Producto
       </button>
     </div>
 
@@ -100,7 +100,7 @@
                   @click="openProductModal(product)"
                   class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs"
                 >
-                  <i class="fas fa-edit mr-1"></i> Editar
+                  ✏️ Editar
                 </button>
               </td>
             </tr>
@@ -109,80 +109,90 @@
       </div>
     </div>
 
-    <!-- MODAL PRODUCTO -->
-    <woot-modal v-if="showProductModal" @close="closeProductModal" :show="showProductModal">
-      <woot-modal-header :header-title="editingProduct ? 'Editar Producto' : 'Nuevo Producto'" />
-      <form @submit.prevent="saveProduct" class="p-5 space-y-4 text-sm">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-gray-300 mb-1">Título del Producto *</label>
-            <input v-model="productForm.title" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+    <!-- MODAL PRODUCTO (hecho a mano, sin woot-modal) -->
+    <div v-if="showProductModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center" @click.self="closeProductModal">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[600px] max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">{{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+          <button @click="closeProductModal" class="text-gray-400 hover:text-white text-xl">✕</button>
+        </div>
+        <form @submit.prevent="saveProduct" class="p-5 space-y-4 text-sm">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-gray-300 mb-1">Título del Producto *</label>
+              <input v-model="productForm.title" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Tipo de Producto *</label>
+              <select v-model="productForm.product_type" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+                <option value="Físico">Físico</option>
+                <option value="Intangible">Intangible (Digital/Servicio)</option>
+              </select>
+            </div>
           </div>
           <div>
-            <label class="block text-gray-300 mb-1">Tipo de Producto *</label>
-            <select v-model="productForm.product_type" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
-              <option value="Físico">Físico</option>
-              <option value="Intangible">Intangible (Digital/Servicio)</option>
+            <label class="block text-gray-300 mb-1">Imagen (URL) *</label>
+            <input v-model="productForm.image_url" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Descripción *</label>
+            <textarea v-model="productForm.description" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-16 focus:border-teal-500 focus:outline-none" required></textarea>
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Características o Beneficios *</label>
+            <textarea v-model="productForm.features" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-12 focus:border-teal-500 focus:outline-none" required></textarea>
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-gray-300 mb-1">Stock *</label>
+              <input v-model.number="productForm.stock" type="number" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Costo Unit. (S/) *</label>
+              <input v-model.number="productForm.cost" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Precio Venta (S/) *</label>
+              <input v-model.number="productForm.price" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 pt-2">
+            <button type="button" @click="closeProductModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL META MENSUAL (hecho a mano) -->
+    <div v-if="showGoalModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center" @click.self="closeGoalModal">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">Configurar Meta Mensual</h2>
+          <button @click="closeGoalModal" class="text-gray-400 hover:text-white text-xl">✕</button>
+        </div>
+        <form @submit.prevent="saveGoal" class="p-5 space-y-4 text-sm">
+          <div>
+            <label class="block text-gray-300 mb-1">Mes de la meta</label>
+            <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+              <option value="Agosto">Agosto</option>
+              <option value="Septiembre">Septiembre</option>
+              <option value="Octubre">Octubre</option>
+              <option value="Noviembre">Noviembre</option>
+              <option value="Diciembre">Diciembre</option>
             </select>
           </div>
-        </div>
-        <div>
-          <label class="block text-gray-300 mb-1">Imagen (URL) *</label>
-          <input v-model="productForm.image_url" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
-        </div>
-        <div>
-          <label class="block text-gray-300 mb-1">Descripción *</label>
-          <textarea v-model="productForm.description" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-16 focus:border-teal-500 focus:outline-none" required></textarea>
-        </div>
-        <div>
-          <label class="block text-gray-300 mb-1">Características o Beneficios *</label>
-          <textarea v-model="productForm.features" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-12 focus:border-teal-500 focus:outline-none" required></textarea>
-        </div>
-        <div class="grid grid-cols-3 gap-4">
           <div>
-            <label class="block text-gray-300 mb-1">Stock *</label>
-            <input v-model.number="productForm.stock" type="number" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            <label class="block text-gray-300 mb-1">Monto Objetivo (S/)</label>
+            <input v-model.number="goalForm.amount" type="number" step="0.01" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 text-lg font-bold text-teal-400 focus:border-teal-500 focus:outline-none" required />
           </div>
-          <div>
-            <label class="block text-gray-300 mb-1">Costo Unit. (S/) *</label>
-            <input v-model.number="productForm.cost" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+          <div class="flex justify-end gap-3 pt-2">
+            <button type="button" @click="closeGoalModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar Meta</button>
           </div>
-          <div>
-            <label class="block text-gray-300 mb-1">Precio Venta (S/) *</label>
-            <input v-model.number="productForm.price" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
-          </div>
-        </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" @click="closeProductModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
-          <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar</button>
-        </div>
-      </form>
-    </woot-modal>
-
-    <!-- MODAL META MENSUAL -->
-    <woot-modal v-if="showGoalModal" @close="closeGoalModal" :show="showGoalModal">
-      <woot-modal-header header-title="Configurar Meta Mensual" />
-      <form @submit.prevent="saveGoal" class="p-5 space-y-4 text-sm">
-        <div>
-          <label class="block text-gray-300 mb-1">Mes de la meta</label>
-          <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
-            <option value="Agosto">Agosto</option>
-            <option value="Septiembre">Septiembre</option>
-            <option value="Octubre">Octubre</option>
-            <option value="Noviembre">Noviembre</option>
-            <option value="Diciembre">Diciembre</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-gray-300 mb-1">Monto Objetivo (S/)</label>
-          <input v-model.number="goalForm.amount" type="number" step="0.01" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 text-lg font-bold text-teal-400 focus:border-teal-500 focus:outline-none" required />
-        </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" @click="closeGoalModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
-          <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar Meta</button>
-        </div>
-      </form>
-    </woot-modal>
+        </form>
+      </div>
+    </div>
 
   </div>
 </template>

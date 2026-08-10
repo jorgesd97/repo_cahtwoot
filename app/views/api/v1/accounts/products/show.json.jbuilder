@@ -1,0 +1,10 @@
+json.id @product.id
+json.title @product.title
+json.product_type @product.product_type
+json.stock @product.stock
+json.cost @product.cost
+json.price @product.price
+json.margin @product.margin
+json.image_url @product.image_url
+json.description @product.description
+json.features @product.features

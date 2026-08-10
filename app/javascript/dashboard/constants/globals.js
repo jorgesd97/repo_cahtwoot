@@ -68,5 +68,10 @@ export default {
     NRT: 'nrt',
     RT: 'rt',
   },
+  CONVERSATION_TYPE: {
+    MENTION: 'mention',
+    PARTICIPATING: 'participating',
+    UNATTENDED: 'unattended',
+  },
 };
 export const DEFAULT_REDIRECT_URL = '/app/';

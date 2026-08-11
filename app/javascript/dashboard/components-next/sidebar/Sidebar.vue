@@ -306,8 +306,20 @@ const menuItems = computed(() => {
       name: 'Tienda',
       label: t('SIDEBAR.TIENDA_ORDENES'),
       icon: 'i-lucide-store',
-      to: accountScopedRoute('tienda_catalogo'),
-      activeOn: ['tienda_catalogo'],
+      children: [
+        {
+          name: 'Catalogo',
+          label: 'Catálogo',
+          to: accountScopedRoute('tienda_catalogo'),
+          activeOn: ['tienda_catalogo'],
+        },
+        {
+          name: 'Ordenes',
+          label: 'Lista de Órdenes',
+          to: accountScopedRoute('tienda_ordenes'),
+          activeOn: ['tienda_ordenes'],
+        },
+      ],
     },
     {
       name: 'Captain',

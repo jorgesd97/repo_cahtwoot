@@ -58,6 +58,7 @@ import copilotMessages from './captain/copilotMessages';
 import captainScenarios from './captain/scenarios';
 import captainTools from './captain/tools';
 import captainCustomTools from './captain/customTools';
+import products from './modules/products';
 
 const plugins = [];
 
@@ -104,6 +105,7 @@ export default createStore({
     notifications,
     portals,
     reports,
+    products,
     sla,
     slaReports,
     summaryReports,

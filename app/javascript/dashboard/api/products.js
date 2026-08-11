@@ -21,6 +21,14 @@ class ProductAPI extends ApiClient {
   deleteProduct(id) {
     return axios.delete(`${this.url}/${id}`);
   }
+
+  importProducts(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios.post(`${this.url}/import`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 }
 
 export default new ProductAPI();

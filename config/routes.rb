@@ -56,6 +56,7 @@ Rails.application.routes.draw do
           end
           resource :bulk_actions, only: [:create]
           resources :products, only: [:index, :show, :create, :update, :destroy]
+          resource :product_import, only: [:create], controller: 'product_imports'
           resource :onboarding, only: [:update] do
             get :help_center_generation
           end

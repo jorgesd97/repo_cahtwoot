@@ -12,10 +12,10 @@
       <div class="bg-[#151718] border border-[#2A2E33] rounded-lg px-4 py-3 flex items-center gap-4">
         <div>
           <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
-            Meta de {{ currentGoal.month || 'Agosto' }}
+            Meta de {{ currentGoal.month }}
           </div>
-          <div class="text-teal-400 font-bold text-xl">
-            S/ {{ parseFloat(currentGoal.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}
+          <div class="font-bold text-xl" style="color: #14B8A6;">
+            S/ {{ parseFloat(currentGoal.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}
           </div>
         </div>
         <div class="w-px h-8 bg-[#2A2E33]"></div>
@@ -31,12 +31,19 @@
 
     <!-- TABS -->
     <div class="px-8 border-b border-[#2A2E33] mt-6 flex gap-6">
-      <button class="border-b-2 border-teal-500 text-teal-400 pb-3 px-1 text-sm font-medium">
+      <router-link
+        :to="{ name: 'tienda_catalogo', params: { accountId: currentAccountId } }"
+        class="pb-3 px-1 text-sm font-medium border-b-2 transition"
+        :class="$route.name === 'tienda_catalogo' ? 'border-teal-500 text-teal-400' : 'border-transparent text-gray-400 hover:text-gray-300'"
+      >
         Catálogo
-      </button>
-      <button class="border-b-2 border-transparent text-gray-400 hover:text-gray-300 pb-3 px-1 text-sm font-medium">
+      </router-link>
+      <router-link
+        :to="{ name: 'tienda_ordenes', params: { accountId: currentAccountId } }"
+        class="pb-3 px-1 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition"
+      >
         Lista de Órdenes
-      </button>
+      </router-link>
     </div>
 
     <!-- TOOLBAR -->
@@ -49,12 +56,22 @@
           class="bg-[#151718] border border-[#2A2E33] text-white text-sm rounded w-full py-1.5 px-3 focus:border-teal-500 focus:outline-none"
         />
       </div>
-      <button 
-        @click="openProductModal()"
-        class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2"
-      >
-        + Nuevo Producto
-      </button>
+      <div class="flex gap-2">
+        <label class="cursor-pointer bg-[#212529] hover:bg-[#2A2E33] text-gray-300 px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2 border border-[#2A2E33]">
+          📄 Importar Excel
+          <input type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="handleImport" />
+        </label>
+        
+        <button 
+          @click="openProductModal()"
+          class="text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2"
+          style="background-color: #14B8A6;"
+          onmouseover="this.style.backgroundColor='#0D9488'"
+          onmouseout="this.style.backgroundColor='#14B8A6'"
+        >
+          + Nuevo Producto
+        </button>
+      </div>
     </div>
 
     <!-- TABLA -->
@@ -79,7 +96,7 @@
               class="border-b border-[#2A2E33] hover:bg-[#212529] transition"
             >
               <td class="px-5 py-4 flex items-center gap-3">
-                <img :src="product.image_url || '/assets/images/default-product.png'" class="w-8 h-8 rounded border border-[#2A2E33]" />
+                <img :src="product.image_url || 'https://via.placeholder.com/40'" class="w-8 h-8 rounded border border-[#2A2E33]" />
                 <span class="font-medium text-gray-200">{{ product.title }}</span>
               </td>
               <td class="px-5 py-4 text-xs text-gray-400">{{ product.product_type }}</td>
@@ -89,10 +106,10 @@
                 </span>
                 <span v-if="product.stock < 10" class="text-red-400 text-xs"> (Bajo)</span>
               </td>
-              <td class="px-5 py-4">S/ {{ parseFloat(product.cost).toFixed(2) }}</td>
-              <td class="px-5 py-4">S/ {{ parseFloat(product.price).toFixed(2) }}</td>
+              <td class="px-5 py-4">S/ {{ parseFloat(product.cost || 0).toFixed(2) }}</td>
+              <td class="px-5 py-4">S/ {{ parseFloat(product.price || 0).toFixed(2) }}</td>
               <td class="px-5 py-4">
-                <span class="text-green-400 text-sm font-semibold">{{ product.margin }}%</span>
+                <span class="text-green-400 text-sm font-semibold">{{ calculateMargin(product) }}%</span>
               </td>
               <td class="px-5 py-4 text-right">
                 <button 
@@ -103,12 +120,17 @@
                 </button>
               </td>
             </tr>
+            <tr v-if="filteredProducts.length === 0">
+              <td colspan="7" class="px-5 py-8 text-center text-gray-500">
+                No hay productos. Crea uno nuevo o importa desde Excel.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- MODAL PRODUCTO (hecho a mano, sin woot-modal) -->
+    <!-- MODAL PRODUCTO -->
     <div v-if="showProductModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center" @click.self="closeProductModal">
       <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[600px] max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
@@ -118,41 +140,41 @@
         <form @submit.prevent="saveProduct" class="p-5 space-y-4 text-sm">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-gray-300 mb-1">Título del Producto *</label>
+              <label class="block text-gray-300 mb-1">Título *</label>
               <input v-model="productForm.title" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
             </div>
             <div>
-              <label class="block text-gray-300 mb-1">Tipo de Producto *</label>
+              <label class="block text-gray-300 mb-1">Tipo *</label>
               <select v-model="productForm.product_type" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
                 <option value="Físico">Físico</option>
-                <option value="Intangible">Intangible (Digital/Servicio)</option>
+                <option value="Intangible">Intangible</option>
               </select>
             </div>
           </div>
           <div>
-            <label class="block text-gray-300 mb-1">Imagen (URL) *</label>
-            <input v-model="productForm.image_url" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+            <label class="block text-gray-300 mb-1">Imagen URL</label>
+            <input v-model="productForm.image_url" type="text" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" />
           </div>
           <div>
-            <label class="block text-gray-300 mb-1">Descripción *</label>
-            <textarea v-model="productForm.description" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-16 focus:border-teal-500 focus:outline-none" required></textarea>
+            <label class="block text-gray-300 mb-1">Descripción</label>
+            <textarea v-model="productForm.description" rows="2" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none"></textarea>
           </div>
           <div>
-            <label class="block text-gray-300 mb-1">Características o Beneficios *</label>
-            <textarea v-model="productForm.features" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 h-12 focus:border-teal-500 focus:outline-none" required></textarea>
+            <label class="block text-gray-300 mb-1">Características</label>
+            <textarea v-model="productForm.features" rows="2" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none"></textarea>
           </div>
           <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-gray-300 mb-1">Stock *</label>
-              <input v-model.number="productForm.stock" type="number" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+              <input v-model.number="productForm.stock" type="number" min="0" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
             </div>
             <div>
-              <label class="block text-gray-300 mb-1">Costo Unit. (S/) *</label>
-              <input v-model.number="productForm.cost" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+              <label class="block text-gray-300 mb-1">Costo (S/) *</label>
+              <input v-model.number="productForm.cost" type="number" step="0.1" min="0" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
             </div>
             <div>
-              <label class="block text-gray-300 mb-1">Precio Venta (S/) *</label>
-              <input v-model.number="productForm.price" type="number" step="0.1" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
+              <label class="block text-gray-300 mb-1">Precio (S/) *</label>
+              <input v-model.number="productForm.price" type="number" step="0.1" min="0" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required />
             </div>
           </div>
           <div class="flex justify-end gap-3 pt-2">
@@ -163,7 +185,7 @@
       </div>
     </div>
 
-    <!-- MODAL META MENSUAL (hecho a mano) -->
+    <!-- MODAL META -->
     <div v-if="showGoalModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center" @click.self="closeGoalModal">
       <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] shadow-2xl">
         <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
@@ -172,13 +194,11 @@
         </div>
         <form @submit.prevent="saveGoal" class="p-5 space-y-4 text-sm">
           <div>
-            <label class="block text-gray-300 mb-1">Mes de la meta</label>
-            <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+            <label class="block text-gray-300 mb-1">Mes</label>
+            <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white rounded w-full py-2 px-3 focus:border-teal-500 focus:outline-none">
               <option value="Agosto">Agosto</option>
               <option value="Septiembre">Septiembre</option>
               <option value="Octubre">Octubre</option>
-              <option value="Noviembre">Noviembre</option>
-              <option value="Diciembre">Diciembre</option>
             </select>
           </div>
           <div>
@@ -241,6 +261,10 @@ export default {
         price: 0,
       };
     },
+    calculateMargin(product) {
+      if (!product.price || product.price == 0) return 0;
+      return (((product.price - product.cost) / product.price) * 100).toFixed(1);
+    },
     async fetchProducts() {
       try {
         const { data } = await ProductAPI.getProducts();
@@ -274,6 +298,17 @@ export default {
         this.fetchProducts();
       } catch (e) {
         console.error('Error guardando producto:', e);
+      }
+    },
+    async handleImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        await ProductAPI.importProducts(file);
+        this.fetchProducts();
+        event.target.value = '';
+      } catch (e) {
+        console.error('Error importando:', e);
       }
     },
     openGoalModal() {

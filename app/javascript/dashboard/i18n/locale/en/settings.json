@@ -229,6 +229,7 @@
   },
   "SIDEBAR_ITEMS": {
     "CHANGE_AVAILABILITY_STATUS": "Change",
+    "TIENDA_ORDENES": "Tienda & Órdenes",
     "CHANGE_ACCOUNTS": "Switch account",
     "SWITCH_ACCOUNT": "Switch account",
     "CONTACT_SUPPORT": "Contact support",
@@ -298,6 +299,7 @@
     "CURRENTLY_VIEWING_ACCOUNT": "Currently viewing:",
     "SWITCH": "Switch",
     "INBOX_VIEW": "Inbox View",
+    "TIENDA_ORDENES": "Tienda & Órdenes",
     "CONVERSATIONS": "Conversations",
     "INBOX": "My Inbox",
     "ALL_CONVERSATIONS": "All Conversations",

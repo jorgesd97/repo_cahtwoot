@@ -5,7 +5,7 @@ class CreateProducts < ActiveRecord::Migration[7.0]
       t.string :title, null: false
       t.string :product_type, null: false, default: 'Físico'
       t.text :description
-      t.text :features
+      t.text :featuresclar
       t.string :image_url
       t.integer :stock, default: 0
       t.decimal :cost, precision: 10, scale: 2, default: 0

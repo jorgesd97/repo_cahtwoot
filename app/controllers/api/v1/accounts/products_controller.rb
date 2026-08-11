@@ -6,6 +6,7 @@ module Api
         
         def index
           @products = Current.account.products.order(created_at: :desc)
+          render json: @products
         end
         
         def show; end

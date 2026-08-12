@@ -88,6 +88,33 @@
 <script>
 import { mapGetters } from 'vuex';
 import ProductAPI from '../../../api/products';
+import axios from 'axios';
+
+function getAuthHeaders() {
+  try {
+    const raw = localStorage.getItem('auth_headers');
+    if (raw) {
+      const h = JSON.parse(raw);
+      return {
+        'access-token': h['access-token'],
+        'client': h['client'],
+        'uid': h['uid'],
+      };
+    }
+  } catch (e) {}
+  try {
+    const match = document.cookie.match(/cw_d_session_info=([^;]+)/);
+    if (match) {
+      const data = JSON.parse(decodeURIComponent(match[1]));
+      return {
+        'access-token': data['access-token'],
+        'client': data['client'],
+        'uid': data['uid'],
+      };
+    }
+  } catch (e) {}
+  return {};
+}
 
 export default {
   name: 'Catalogo',
@@ -143,13 +170,15 @@ export default {
         onConfirm: () => this.deleteProduct(product.id),
       });
     },
-
     async deleteProduct(productId) {
       try {
-        await axios.delete(`/api/v1/accounts/${this.accountId}/products/${productId}`);
+        await axios.delete(`/api/v1/accounts/${this.currentAccountId}/products/${productId}`, {
+          headers: getAuthHeaders(),
+        });
         this.$toast.success('Producto eliminado');
-        this.fetchProducts(); // o el método que uses para recargar
+        this.fetchProducts();
       } catch (error) {
+        console.error('Error deleting product:', error);
         this.$toast.error('No se pudo eliminar el producto');
       }
     },

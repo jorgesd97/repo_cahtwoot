@@ -96,6 +96,53 @@ function debounce(fn, delay) {
   };
 }
 
+function getAuthHeaders() {
+  // Opción 1: localStorage (devise_token_auth)
+  try {
+    const raw = localStorage.getItem('auth_headers');
+    if (raw) {
+      const h = JSON.parse(raw);
+      if (h['access-token']) {
+        return {
+          'access-token': h['access-token'],
+          'client': h['client'],
+          'uid': h['uid'],
+        };
+      }
+    }
+  } catch (e) {}
+
+  // Opción 2: cookie cw_d_session_info
+  try {
+    const match = document.cookie.match(/cw_d_session_info=([^;]+)/);
+    if (match) {
+      const data = JSON.parse(decodeURIComponent(match[1]));
+      if (data['access-token'] || data['authorization']) {
+        return {
+          'access-token': data['access-token'],
+          'client': data['client'],
+          'uid': data['uid'],
+        };
+      }
+    }
+  } catch (e) {}
+
+  // Opción 3: leer de Vuex store si está disponible globalmente
+  try {
+    const store = window.__VUE_APP__?.$store || document.querySelector('#app')?.__vue_app__?.$store;
+    if (store && store.state.auth && store.state.auth.headers) {
+      const h = store.state.auth.headers;
+      return {
+        'access-token': h['access-token'],
+        'client': h['client'],
+        'uid': h['uid'],
+      };
+    }
+  } catch (e) {}
+
+  return {};
+}
+
 export default {
   name: 'Ordenes',
   data() {
@@ -119,9 +166,13 @@ export default {
       try {
         const params = {};
         if (this.searchQuery) params.q = this.searchQuery;
-        const { data } = await axios.get(`/api/v1/accounts/${this.accountId}/orders`, { params });
+        const { data } = await axios.get(`/api/v1/accounts/${this.accountId}/orders`, {
+          params,
+          headers: getAuthHeaders(),
+        });
         this.orders = data;
       } catch (e) {
+        console.error('Error fetching orders:', e);
         this.$toast.error('Error al cargar órdenes');
       } finally {
         this.isLoading = false;
@@ -137,7 +188,9 @@ export default {
     formatDeliveryDate(order) {
       if (!order.delivery_date) return 'Inmediato (Email)';
       const d = new Date(order.delivery_date);
-      return `${d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}, ${d.getHours()}:00 - ${d.getHours() + 4}:00`;
+      const h = d.getHours().toString().padStart(2, '0');
+      const hEnd = (d.getHours() + 4).toString().padStart(2, '0');
+      return `${d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}, ${h}:00 - ${hEnd}:00`;
     },
     formatItems(itemsJson) {
       try {
@@ -161,7 +214,7 @@ export default {
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${id}`, {
           order: { status: newStatus },
-        });
+        }, { headers: getAuthHeaders() });
         this.$toast.success(`Orden marcada como ${newStatus}`);
         this.fetchOrders();
       } catch {

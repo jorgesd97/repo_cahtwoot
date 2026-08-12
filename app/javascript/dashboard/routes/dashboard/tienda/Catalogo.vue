@@ -13,7 +13,18 @@
         >
       </div>
       <div class="flex items-center gap-3">
-        <button class="bg-[#212529] text-gray-300 px-4 py-2 rounded text-sm border border-[#2A2E33] hover:border-gray-500 transition flex items-center">
+        <!-- Input file oculto para importar -->
+        <input 
+          ref="fileInput"
+          type="file" 
+          accept=".xlsx,.xls,.csv"
+          class="hidden"
+          @change="handleImport"
+        >
+        <button 
+          @click="$refs.fileInput.click()"
+          class="bg-[#212529] text-gray-300 px-4 py-2 rounded text-sm border border-[#2A2E33] hover:border-gray-500 transition flex items-center"
+        >
           <span class="mr-2">📄</span> Importar Excel
         </button>
         <button 
@@ -40,7 +51,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Tu v-for actual de productos -->
           <tr v-for="product in filteredProducts" :key="product.id" class="border-b border-[#2A2E33] hover:bg-[#1C1F21] transition">
             <td class="px-5 py-4 flex items-center space-x-3">
               <img :src="product.image_url" class="w-8 h-8 rounded border border-[#2A2E33]">
@@ -61,13 +71,13 @@
               <div class="flex items-center justify-end gap-2">
                 <button 
                   @click="openProductModal(product)"
-                  class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs"
+                  class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-1"
                 >
                   ✏️ Editar
                 </button>
                 <button
                   @click="confirmDelete(product)"
-                  class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs"
+                  class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-1"
                 >
                   🗑️ Eliminar
                 </button>
@@ -82,6 +92,93 @@
         </tbody>
       </table>
     </div>
+
+    <!-- MODAL PRODUCTO -->
+    <div v-if="showProductModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[600px] max-h-[90vh] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">{{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+          <button @click="closeProductModal" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <form @submit.prevent="saveProduct" class="flex flex-col flex-1 overflow-hidden">
+          <div class="p-5 overflow-y-auto space-y-4 text-sm flex-1">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-gray-300 mb-1">Título *</label>
+                <input v-model="productForm.title" type="text" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+              </div>
+              <div>
+                <label class="block text-gray-300 mb-1">Tipo *</label>
+                <select v-model="productForm.product_type" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+                  <option value="Físico">Físico</option>
+                  <option value="Intangible">Intangible</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Imagen URL</label>
+              <input v-model="productForm.image_url" type="text" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Descripción</label>
+              <textarea v-model="productForm.description" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 h-16 focus:border-teal-500 focus:outline-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Características</label>
+              <textarea v-model="productForm.features" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 h-12 focus:border-teal-500 focus:outline-none"></textarea>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-gray-300 mb-1">Stock *</label>
+                <input v-model.number="productForm.stock" type="number" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+              </div>
+              <div>
+                <label class="block text-gray-300 mb-1">Costo (S/) *</label>
+                <input v-model.number="productForm.cost" type="number" step="0.01" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+              </div>
+              <div>
+                <label class="block text-gray-300 mb-1">Precio (S/) *</label>
+                <input v-model.number="productForm.price" type="number" step="0.01" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+              </div>
+            </div>
+          </div>
+          <div class="p-5 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+            <button type="button" @click="closeProductModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL META -->
+    <div v-if="showGoalModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">Configurar Meta Mensual</h2>
+          <button @click="closeGoalModal" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <form @submit.prevent="saveGoal">
+          <div class="p-5 space-y-4 text-sm">
+            <div>
+              <label class="block text-gray-300 mb-1">Mes</label>
+              <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none" required>
+                <option>Agosto</option>
+                <option>Septiembre</option>
+                <option>Octubre</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1">Monto Objetivo (S/)</label>
+              <input v-model.number="goalForm.amount" type="number" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 text-lg font-bold text-teal-400 focus:border-teal-500 focus:outline-none" required>
+            </div>
+          </div>
+          <div class="p-4 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+            <button type="button" @click="closeGoalModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition">Guardar Meta</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,16 +187,26 @@ import { mapGetters } from 'vuex';
 import ProductAPI from '../../../api/products';
 import axios from 'axios';
 
+function debounce(fn, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 function getAuthHeaders() {
   try {
     const raw = localStorage.getItem('auth_headers');
     if (raw) {
       const h = JSON.parse(raw);
-      return {
-        'access-token': h['access-token'],
-        'client': h['client'],
-        'uid': h['uid'],
-      };
+      if (h['access-token']) {
+        return {
+          'access-token': h['access-token'],
+          'client': h['client'],
+          'uid': h['uid'],
+        };
+      }
     }
   } catch (e) {}
   try {
@@ -124,7 +231,17 @@ export default {
       searchQuery: '',
       showProductModal: false,
       editingProduct: false,
-      productForm: this.emptyProductForm(),
+      productForm: {
+        id: null,
+        title: '',
+        product_type: 'Físico',
+        image_url: 'https://via.placeholder.com/40',
+        description: '',
+        features: '',
+        stock: 0,
+        cost: 0,
+        price: 0,
+      },
       showGoalModal: false,
       currentGoal: { month: 'Agosto', amount: 15000 },
       goalForm: { month: 'Agosto', amount: 15000 },
@@ -144,19 +261,6 @@ export default {
     this.fetchProducts();
   },
   methods: {
-    emptyProductForm() {
-      return {
-        id: null,
-        title: '',
-        product_type: 'Físico',
-        image_url: 'https://via.placeholder.com/40',
-        description: '',
-        features: '',
-        stock: 0,
-        cost: 0,
-        price: 0,
-      };
-    },
     calculateMargin(product) {
       if (!product.price || product.price == 0) return 0;
       return (((product.price - product.cost) / product.price) * 100).toFixed(1);
@@ -164,7 +268,7 @@ export default {
     confirmDelete(product) {
       this.$alert({
         title: '¿Eliminar producto?',
-        message: `Se eliminará permanentemente "${product.title}".`,
+        message: `Se eliminará permanentemente "${product.title}". Esta acción no se puede deshacer.`,
         confirmLabel: 'Eliminar',
         cancelLabel: 'Cancelar',
         onConfirm: () => this.deleteProduct(product.id),
@@ -196,13 +300,22 @@ export default {
         this.productForm = { ...product };
       } else {
         this.editingProduct = false;
-        this.productForm = this.emptyProductForm();
+        this.productForm = {
+          id: null,
+          title: '',
+          product_type: 'Físico',
+          image_url: 'https://via.placeholder.com/40',
+          description: '',
+          features: '',
+          stock: 0,
+          cost: 0,
+          price: 0,
+        };
       }
       this.showProductModal = true;
     },
     closeProductModal() {
       this.showProductModal = false;
-      this.productForm = this.emptyProductForm();
     },
     async saveProduct() {
       try {
@@ -215,6 +328,7 @@ export default {
         this.fetchProducts();
       } catch (e) {
         console.error('Error guardando producto:', e);
+        this.$toast.error('Error al guardar producto');
       }
     },
     async handleImport(event) {
@@ -224,8 +338,10 @@ export default {
         await ProductAPI.importProducts(file);
         this.fetchProducts();
         event.target.value = '';
+        this.$toast.success('Productos importados');
       } catch (e) {
         console.error('Error importando:', e);
+        this.$toast.error('Error al importar');
       }
     },
     openGoalModal() {
@@ -238,7 +354,12 @@ export default {
     saveGoal() {
       this.currentGoal = { ...this.goalForm };
       this.closeGoalModal();
+      this.$toast.success('Meta actualizada');
     },
+    debounceSearch: debounce(function () {
+      // Si tu ProductAPI soporte búsqueda, úsala aquí
+      // Por ahora solo filtra el array local
+    }, 300),
   },
 };
 </script>

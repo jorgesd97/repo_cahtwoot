@@ -80,6 +80,13 @@
                 >
                   Cancelar
                 </button>
+                <!-- ✅ BOTÓN ELIMINAR -->
+                <button
+                  @click="confirmDeleteOrder(order)"
+                  class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] flex items-center gap-1 w-28 justify-center"
+                >
+                  🗑️ Eliminar
+                </button>
               </div>
             </td>
           </tr>
@@ -108,6 +115,27 @@
           </button>
           <button @click="doCancelOrder" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-sm font-medium transition">
             Sí, Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ MODAL ELIMINAR ORDEN -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">¿Seguro que quieres eliminar?</h2>
+          <button @click="showDeleteModal = false" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 text-sm text-gray-300">
+          <p>Se eliminará permanentemente la orden <strong>#{{ orderToDelete?.order_number }}</strong>. Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="p-4 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+          <button @click="showDeleteModal = false" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">
+            Mantener
+          </button>
+          <button @click="deleteOrder" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-sm font-medium transition">
+            Sí, Eliminar
           </button>
         </div>
       </div>
@@ -177,6 +205,8 @@ export default {
       isLoading: false,
       showCancelModal: false,
       orderToCancel: null,
+      showDeleteModal: false,
+      orderToDelete: null,
     };
   },
   computed: {
@@ -186,22 +216,16 @@ export default {
   },
   mounted() {
     this.fetchOrders();
-    // ✅ Escuchar evento para abrir modal de meta (desde TiendaLayout)
     window.addEventListener('open-goal-modal', this.openGoalModal);
   },
   beforeUnmount() {
-    // ✅ Limpieza
     window.removeEventListener('open-goal-modal', this.openGoalModal);
   },
   methods: {
     openGoalModal() {
-      // ✅ Emitir evento hacia arriba para que TiendaLayout lo maneje,
-      // o si el modal de meta vive en este componente, abrirlo aquí.
-      // Como la meta está en TiendaLayout, redirigimos al catálogo donde sí está el modal:
       if (this.$route.name !== 'tienda_catalogo') {
         this.$router.push(`/app/accounts/${this.accountId}/tienda/catalogo`);
       }
-      // Darle tiempo al router de montar Catalogo.vue y luego disparar el evento
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('open-goal-modal'));
       }, 100);
@@ -255,35 +279,74 @@ export default {
       };
       return map[status] || 'bg-gray-900/30 border-gray-800 text-gray-500';
     },
+    // ✅ FEEDBACK INSTANTÁNEO: actualiza local primero, luego sincroniza con servidor
     async updateStatus(id, newStatus) {
+      const order = this.orders.find(o => o.id === id);
+      const oldStatus = order ? order.status : null;
+      
+      // Cambio inmediato en la UI
+      if (order) order.status = newStatus;
+      
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${id}`, {
           order: { status: newStatus },
         }, { headers: getAuthHeaders() });
         this.$toast.success(`Orden marcada como ${newStatus}`);
-        this.fetchOrders();
+        // Refrescar por si acaso el backend devolvió datos extra
+        await this.fetchOrders();
       } catch {
+        // Si falla, revertir al estado anterior
+        if (order) order.status = oldStatus;
         this.$toast.error('Error al actualizar estado');
       }
     },
-    // ✅ Reemplaza this.$alert por modal nativo
     confirmCancelOrder(order) {
       this.orderToCancel = order;
       this.showCancelModal = true;
     },
     async doCancelOrder() {
       if (!this.orderToCancel) return;
+      const order = this.orders.find(o => o.id === this.orderToCancel.id);
+      const oldStatus = order ? order.status : null;
+      
+      if (order) order.status = 'cancelado';
+      
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${this.orderToCancel.id}`, {
           order: { status: 'cancelado' },
         }, { headers: getAuthHeaders() });
         this.$toast.success('Orden cancelada');
-        this.fetchOrders();
+        await this.fetchOrders();
       } catch {
+        if (order) order.status = oldStatus;
         this.$toast.error('Error al cancelar orden');
       } finally {
         this.showCancelModal = false;
         this.orderToCancel = null;
+      }
+    },
+    // ✅ NUEVO: Confirmar eliminar
+    confirmDeleteOrder(order) {
+      this.orderToDelete = order;
+      this.showDeleteModal = true;
+    },
+    // ✅ NUEVO: Eliminar orden
+    async deleteOrder() {
+      if (!this.orderToDelete) return;
+      try {
+        await axios.delete(`/api/v1/accounts/${this.accountId}/orders/${this.orderToDelete.id}`, {
+          headers: getAuthHeaders(),
+        });
+        // Eliminar localmente primero (feedback inmediato)
+        this.orders = this.orders.filter(o => o.id !== this.orderToDelete.id);
+        this.$toast.success('Orden eliminada');
+        await this.fetchOrders();
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        this.$toast.error('No se pudo eliminar la orden');
+      } finally {
+        this.showDeleteModal = false;
+        this.orderToDelete = null;
       }
     },
   },

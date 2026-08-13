@@ -3,7 +3,7 @@
     <!-- TOOLBAR -->
     <div class="p-4 flex justify-between items-center border-b border-[#2A2E33] bg-[#151718]">
       <div class="relative w-64">
-        <span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
+        <span class="absolute left-3 top-sh text-gray-500 text-sm">🔍</span>
         <input 
           type="text" 
           placeholder="Buscar Nro de orden..." 
@@ -19,7 +19,7 @@
         class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-2"
         title="Recargar órdenes"
       >
-        <span :class="{ 'animate-spin': isLoading }">🔄</span>
+        <span :class="{ 'animate-spin': isLoading }">🔌</span>
         {{ isLoading ? 'Cargando...' : 'Refrescar' }}
       </button>
     </div>
@@ -63,25 +63,26 @@
                   v-if="order.status === 'pendiente'"
                   @click="updateStatus(order.id, 'enviado')"
                   class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] w-28"
-                >
+                  >
                   Marcar Enviado
                 </button>
                 <button
                   v-if="order.status === 'enviado'"
                   @click="updateStatus(order.id, 'entregado')"
                   class="text-gray-400 hover:text-green-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] w-28"
-                >
+                  >
                   Marcar Entregado
                 </button>
                 <button
                   v-if="order.status !== 'cancelado' && order.status !== 'entregado'"
                   @click="confirmCancelOrder(order)"
                   class="text-red-400 hover:text-red-300 text-[10px] uppercase font-bold mt-1 transition text-right w-28"
-                >
+                  >
                   Cancelar
                 </button>
-                <!-- ✅ BOTÓN ELIMINAR -->
+                <!-- ✅ ELIMINAR: solo visible si está cancelado -->
                 <button
+                  v-if="order.status === 'cancelado'"
                   @click="confirmDeleteOrder(order)"
                   class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] flex items-center gap-1 w-28 justify-center"
                 >
@@ -120,7 +121,7 @@
       </div>
     </div>
 
-    <!-- ✅ MODAL ELIMINAR ORDEN -->
+    <!-- MODAL ELIMINAR ORDEN -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
       <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
         <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
@@ -146,6 +147,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import axios from 'axios';
+import { emitter } from 'shared/helpers/mitt';
 
 function debounce(fn, delay) {
   let timeoutId;
@@ -196,6 +198,10 @@ function getAuthHeaders() {
   return {};
 }
 
+function showToast(message) {
+  emitter.emit('newToastMessage', { message });
+}
+
 export default {
   name: 'Ordenes',
   data() {
@@ -242,7 +248,7 @@ export default {
         this.orders = data;
       } catch (e) {
         console.error('Error fetching orders:', e);
-        this.$toast.error('Error al cargar órdenes');
+        showToast('Error al cargar órdenes');
       } finally {
         this.isLoading = false;
       }
@@ -279,31 +285,29 @@ export default {
       };
       return map[status] || 'bg-gray-900/30 border-gray-800 text-gray-500';
     },
-    // ✅ FEEDBACK INSTANTÁNEO: actualiza local primero, luego sincroniza con servidor
+
     async updateStatus(id, newStatus) {
       const order = this.orders.find(o => o.id === id);
       const oldStatus = order ? order.status : null;
       
-      // Cambio inmediato en la UI
       if (order) order.status = newStatus;
       
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${id}`, {
           order: { status: newStatus },
         }, { headers: getAuthHeaders() });
-        this.$toast.success(`Orden marcada como ${newStatus}`);
-        // Refrescar por si acaso el backend devolvió datos extra
-        await this.fetchOrders();
+        showToast(`Orden marcada como ${newStatus}`);
       } catch {
-        // Si falla, revertir al estado anterior
         if (order) order.status = oldStatus;
-        this.$toast.error('Error al actualizar estado');
+        showToast('Error al actualizar estado');
       }
     },
+
     confirmCancelOrder(order) {
       this.orderToCancel = order;
       this.showCancelModal = true;
     },
+
     async doCancelOrder() {
       if (!this.orderToCancel) return;
       const order = this.orders.find(o => o.id === this.orderToCancel.id);
@@ -315,35 +319,33 @@ export default {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${this.orderToCancel.id}`, {
           order: { status: 'cancelado' },
         }, { headers: getAuthHeaders() });
-        this.$toast.success('Orden cancelada');
-        await this.fetchOrders();
+        showToast('Orden cancelada');
       } catch {
         if (order) order.status = oldStatus;
-        this.$toast.error('Error al cancelar orden');
+        showToast('Error al cancelar orden');
       } finally {
         this.showCancelModal = false;
         this.orderToCancel = null;
       }
     },
-    // ✅ NUEVO: Confirmar eliminar
+
     confirmDeleteOrder(order) {
       this.orderToDelete = order;
       this.showDeleteModal = true;
     },
-    // ✅ NUEVO: Eliminar orden
+
     async deleteOrder() {
       if (!this.orderToDelete) return;
       try {
         await axios.delete(`/api/v1/accounts/${this.accountId}/orders/${this.orderToDelete.id}`, {
           headers: getAuthHeaders(),
         });
-        // Eliminar localmente primero (feedback inmediato)
         this.orders = this.orders.filter(o => o.id !== this.orderToDelete.id);
-        this.$toast.success('Orden eliminada');
+        showToast('Orden eliminada');
         await this.fetchOrders();
       } catch (error) {
         console.error('Error deleting order:', error);
-        this.$toast.error('No se pudo eliminar la orden');
+        showToast('No se pudo eliminar la orden');
       } finally {
         this.showDeleteModal = false;
         this.orderToDelete = null;

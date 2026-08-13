@@ -13,7 +13,6 @@
         >
       </div>
       <div class="flex items-center gap-3">
-        <!-- Input file oculto para importar -->
         <input 
           ref="fileInput"
           type="file" 
@@ -179,6 +178,27 @@
         </form>
       </div>
     </div>
+
+    <!-- MODAL ELIMINAR -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">¿Seguro que quieres eliminar?</h2>
+          <button @click="showDeleteModal = false" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 text-sm text-gray-300">
+          <p>Se eliminará permanentemente <strong>"{{ productToDelete?.title }}"</strong>. Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="p-4 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+          <button @click="showDeleteModal = false" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">
+            Mantener
+          </button>
+          <button @click="deleteProduct" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-sm font-medium transition">
+            Sí, Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -229,6 +249,8 @@ export default {
     return {
       products: [],
       searchQuery: '',
+      showDeleteModal: false,
+      productToDelete: null,
       showProductModal: false,
       editingProduct: false,
       productForm: {
@@ -258,7 +280,18 @@ export default {
     },
   },
   mounted() {
-    this.fetchProducts();
+  this.fetchProducts();
+  window.addEventListener('open-goal-modal', this.openGoalModal);
+  
+  // Cargar meta guardada si existe
+  try {
+    const saved = localStorage.getItem('tienda_goal');
+    if (saved) this.currentGoal = JSON.parse(saved);
+  } catch (e) {}
+  },
+  beforeUnmount() {
+    // ✅ Vue 3 usa beforeUnmount (no beforeDestroy)
+    window.removeEventListener('open-goal-modal', this.openGoalModal);
   },
   methods: {
     calculateMargin(product) {
@@ -266,24 +299,26 @@ export default {
       return (((product.price - product.cost) / product.price) * 100).toFixed(1);
     },
     confirmDelete(product) {
-      this.$alert({
-        title: '¿Eliminar producto?',
-        message: `Se eliminará permanentemente "${product.title}". Esta acción no se puede deshacer.`,
-        confirmLabel: 'Eliminar',
-        cancelLabel: 'Cancelar',
-        onConfirm: () => this.deleteProduct(product.id),
-      });
+      this.productToDelete = product;
+      this.showDeleteModal = true;
     },
-    async deleteProduct(productId) {
+    async deleteProduct() {
+      if (!this.productToDelete) return;
       try {
-        await axios.delete(`/api/v1/accounts/${this.currentAccountId}/products/${productId}`, {
+        await axios.delete(`/api/v1/accounts/${this.currentAccountId}/products/${this.productToDelete.id}`, {
           headers: getAuthHeaders(),
         });
+        // ✅ Eliminar localmente primero (feedback inmediato)
+        this.products = this.products.filter(p => p.id !== this.productToDelete.id);
         this.$toast.success('Producto eliminado');
-        this.fetchProducts();
+        // Refrescar desde servidor por si acaso
+        await this.fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
         this.$toast.error('No se pudo eliminar el producto');
+      } finally {
+        this.showDeleteModal = false;
+        this.productToDelete = null;
       }
     },
     async fetchProducts() {
@@ -352,10 +387,12 @@ export default {
       this.showGoalModal = false;
     },
     saveGoal() {
-      this.currentGoal = { ...this.goalForm };
-      this.closeGoalModal();
-      this.$toast.success('Meta actualizada');
-    },
+  this.currentGoal = { ...this.goalForm };
+  localStorage.setItem('tienda_goal', JSON.stringify(this.currentGoal));
+  window.dispatchEvent(new CustomEvent('goal-updated'));
+  this.closeGoalModal();
+  this.$toast.success('Meta actualizada');
+},
     debounceSearch: debounce(function () {
       // Si tu ProductAPI soporte búsqueda, úsala aquí
       // Por ahora solo filtra el array local

@@ -12,6 +12,16 @@
           @input="debounceSearch"
         >
       </div>
+      <!-- BOTÓN REFRESH -->
+      <button
+        @click="fetchOrders"
+        :disabled="isLoading"
+        class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-2"
+        title="Recargar órdenes"
+      >
+        <span :class="{ 'animate-spin': isLoading }">🔄</span>
+        {{ isLoading ? 'Cargando...' : 'Refrescar' }}
+      </button>
     </div>
 
     <!-- TABLA -->
@@ -30,7 +40,7 @@
         <tbody>
           <tr v-for="order in orders" :key="order.id" class="border-b border-[#2A2E33] hover:bg-[#1C1F21] transition">
             <td class="px-5 py-4">
-              <div class="font-medium text-gray-200">#{{ order.order_number }}</div>
+              <div class="font-medium text-gray-200">{{ order.order_number }}</div>
               <div class="text-[10px] text-gray-500">{{ formatDateShort(order.created_at) }}</div>
             </td>
             <td class="px-5 py-4">
@@ -43,7 +53,7 @@
             </td>
             <td class="px-5 py-4">
               <div class="text-teal-400 text-xs font-medium mb-1">{{ formatDeliveryDate(order) }}</div>
-              <div class="text-[10px] text-gray-400 leading-tight">{{ order.delivery_address || '—' }}</div>
+              <div class="text-[10px] text-gray-400 leading-snug">{{ order.delivery_address || '—' }}</div>
             </td>
             <td class="px-5 py-4 text-xs text-gray-300 leading-snug" v-html="formatItems(order.items_json)"></td>
             <td class="px-5 py-4 font-bold text-white">S/ {{ parseFloat(order.total_amount || 0).toFixed(2) }}</td>
@@ -65,7 +75,7 @@
                 </button>
                 <button
                   v-if="order.status !== 'cancelado' && order.status !== 'entregado'"
-                  @click="cancelOrder(order.id)"
+                  @click="confirmCancelOrder(order)"
                   class="text-red-400 hover:text-red-300 text-[10px] uppercase font-bold mt-1 transition text-right w-28"
                 >
                   Cancelar
@@ -80,6 +90,27 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- MODAL CANCELAR ORDEN -->
+    <div v-if="showCancelModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">¿Seguro que quieres cancelar?</h2>
+          <button @click="showCancelModal = false" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 text-sm text-gray-300">
+          <p>Esta acción cambiará el estado de la orden <strong>#{{ orderToCancel?.order_number }}</strong> y no se puede deshacer.</p>
+        </div>
+        <div class="p-4 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+          <button @click="showCancelModal = false" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">
+            Mantener orden
+          </button>
+          <button @click="doCancelOrder" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded text-sm font-medium transition">
+            Sí, Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -97,7 +128,6 @@ function debounce(fn, delay) {
 }
 
 function getAuthHeaders() {
-  // Opción 1: localStorage (devise_token_auth)
   try {
     const raw = localStorage.getItem('auth_headers');
     if (raw) {
@@ -111,8 +141,6 @@ function getAuthHeaders() {
       }
     }
   } catch (e) {}
-
-  // Opción 2: cookie cw_d_session_info
   try {
     const match = document.cookie.match(/cw_d_session_info=([^;]+)/);
     if (match) {
@@ -126,8 +154,6 @@ function getAuthHeaders() {
       }
     }
   } catch (e) {}
-
-  // Opción 3: leer de Vuex store si está disponible globalmente
   try {
     const store = window.__VUE_APP__?.$store || document.querySelector('#app')?.__vue_app__?.$store;
     if (store && store.state.auth && store.state.auth.headers) {
@@ -139,7 +165,6 @@ function getAuthHeaders() {
       };
     }
   } catch (e) {}
-
   return {};
 }
 
@@ -150,6 +175,8 @@ export default {
       orders: [],
       searchQuery: '',
       isLoading: false,
+      showCancelModal: false,
+      orderToCancel: null,
     };
   },
   computed: {
@@ -159,8 +186,26 @@ export default {
   },
   mounted() {
     this.fetchOrders();
+    // ✅ Escuchar evento para abrir modal de meta (desde TiendaLayout)
+    window.addEventListener('open-goal-modal', this.openGoalModal);
+  },
+  beforeUnmount() {
+    // ✅ Limpieza
+    window.removeEventListener('open-goal-modal', this.openGoalModal);
   },
   methods: {
+    openGoalModal() {
+      // ✅ Emitir evento hacia arriba para que TiendaLayout lo maneje,
+      // o si el modal de meta vive en este componente, abrirlo aquí.
+      // Como la meta está en TiendaLayout, redirigimos al catálogo donde sí está el modal:
+      if (this.$route.name !== 'tienda_catalogo') {
+        this.$router.push(`/app/accounts/${this.accountId}/tienda/catalogo`);
+      }
+      // Darle tiempo al router de montar Catalogo.vue y luego disparar el evento
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-goal-modal'));
+      }, 100);
+    },
     async fetchOrders() {
       this.isLoading = true;
       try {
@@ -221,14 +266,25 @@ export default {
         this.$toast.error('Error al actualizar estado');
       }
     },
-    cancelOrder(id) {
-      this.$alert({
-        title: '¿Cancelar orden?',
-        message: 'Esta acción no se puede deshacer.',
-        confirmLabel: 'Sí, cancelar',
-        cancelLabel: 'No',
-        onConfirm: () => this.updateStatus(id, 'cancelado'),
-      });
+    // ✅ Reemplaza this.$alert por modal nativo
+    confirmCancelOrder(order) {
+      this.orderToCancel = order;
+      this.showCancelModal = true;
+    },
+    async doCancelOrder() {
+      if (!this.orderToCancel) return;
+      try {
+        await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${this.orderToCancel.id}`, {
+          order: { status: 'cancelado' },
+        }, { headers: getAuthHeaders() });
+        this.$toast.success('Orden cancelada');
+        this.fetchOrders();
+      } catch {
+        this.$toast.error('Error al cancelar orden');
+      } finally {
+        this.showCancelModal = false;
+        this.orderToCancel = null;
+      }
     },
   },
 };

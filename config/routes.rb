@@ -55,7 +55,11 @@ Rails.application.routes.draw do
             resource :contact_merge, only: [:create]
           end
           resource :bulk_actions, only: [:create]
-          resources :products, only: [:index, :show, :create, :update, :destroy]
+          resources :products, only: [:index, :show, :create, :update, :destroy] do
+          collection do
+            post :import
+          end
+        end
           resource :product_import, only: [:create], controller: 'product_imports'
           resources :orders, only: [:index, :show, :create, :update, :destroy]
           resource :onboarding, only: [:update] do

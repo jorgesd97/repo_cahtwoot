@@ -2,16 +2,20 @@
   <div class="w-full">
     <!-- TOOLBAR -->
     <div class="p-4 flex justify-between items-center border-b border-[#2A2E33] bg-[#151718]">
-      <div class="relative w-64">
-        <span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
-        <input 
-          type="text" 
-          placeholder="Buscar producto..." 
-          class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-1.5 pl-9 pr-3 text-sm focus:outline-none focus:border-teal-500 transition"
-          v-model="searchQuery"
-          @input="debounceSearch"
-        >
-      </div>
+                  <div class="relative w-72">
+  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+  </div>
+  <input 
+    type="text" 
+    placeholder="Buscar producto..." 
+    class="block w-full rounded-lg border border-[#2A2E33] bg-[#151718] py-2.5 pl-11 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/20"
+    v-model="searchQuery"
+    @input="debounceSearch"
+  >
+</div>
       <div class="flex items-center gap-3">
         <input 
           ref="fileInput"
@@ -68,17 +72,23 @@
             </td>
             <td class="px-5 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <button 
+                                <button 
                   @click="openProductModal(product)"
-                  class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-1"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
                 >
-                  ✏️ Editar
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                  </svg>
+                  Editar
                 </button>
                 <button
                   @click="confirmDelete(product)"
-                  class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-1"
+                  class="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-400 transition hover:underline"
                 >
-                  🗑️ Eliminar
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  Eliminar
                 </button>
               </div>
             </td>

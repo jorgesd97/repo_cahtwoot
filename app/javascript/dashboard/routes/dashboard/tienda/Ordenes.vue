@@ -2,26 +2,28 @@
   <div class="w-full">
     <!-- TOOLBAR -->
     <div class="p-4 flex justify-between items-center border-b border-[#2A2E33] bg-[#151718]">
-      <div class="relative w-64">
-        <span class="absolute left-3 top-sh text-gray-500 text-sm">🔍</span>
+            <div class="relative w-72">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input 
           type="text" 
-          placeholder="Buscar Nro de orden..." 
-          class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-1.5 pl-9 pr-3 text-sm focus:outline-none focus:border-teal-500 transition"
+          placeholder="Buscar Nro de orden..."
+          class="bg-[#1C1E23] border-0 text-slate-200 w-full rounded-lg py-2 pl-10 pr-4 text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 transition"
           v-model="searchQuery"
           @input="debounceSearch"
         >
       </div>
       <!-- BOTÓN REFRESH -->
-      <button
-        @click="fetchOrders"
-        :disabled="isLoading"
-        class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-xs flex items-center gap-2"
-        title="Recargar órdenes"
-      >
-        <span :class="{ 'animate-spin': isLoading }">🔌</span>
-        {{ isLoading ? 'Cargando...' : 'Refrescar' }}
-      </button>
+      <button 
+  @click="fetchOrders()"
+  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
+  title="Refrescar"
+>
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+  </svg>
+</button>
     </div>
 
     <!-- TABLA -->
@@ -81,12 +83,15 @@
                   Cancelar
                 </button>
                 <!-- ✅ ELIMINAR: solo visible si está cancelado -->
-                <button
-                  v-if="order.status === 'cancelado'"
+                                <button
+                   v-if="order.status === 'cancelado'"
                   @click="confirmDeleteOrder(order)"
-                  class="text-gray-400 hover:text-red-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] flex items-center gap-1 w-28 justify-center"
+                  class="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-400 transition hover:underline"
                 >
-                  🗑️ Eliminar
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  Eliminar
                 </button>
               </div>
             </td>

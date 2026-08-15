@@ -15,12 +15,14 @@
         </div>
         <div class="w-px h-8 bg-[#2A2E33]"></div>
         <button 
-          @click="triggerEditGoal" 
-          class="text-gray-400 hover:text-white transition px-2 py-1 bg-[#212529] rounded border border-[#2A2E33]" 
-          title="Editar Meta"
-        >
-          <span class="text-sm">✏️</span>
-        </button>
+  @click="triggerEditGoal"
+  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
+  title="Editar meta"
+>
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+  </svg>
+</button>
       </div>
     </div>    <!-- ✅ AQUÍ FALTABA ESTE </div> -->
 

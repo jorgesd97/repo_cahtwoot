@@ -283,27 +283,46 @@ export default {
     ...mapGetters({
       currentAccountId: 'getCurrentAccountId',
     }),
+    goalStorageKey() {
+      return `tienda_goal_account_${this.currentAccountId}`;
+    },
     filteredProducts() {
       if (!this.searchQuery) return this.products;
       const q = this.searchQuery.toLowerCase();
       return this.products.filter(p => p.title.toLowerCase().includes(q));
     },
   },
+  watch: {
+    currentAccountId: {
+      immediate: true,
+      handler() {
+        this.loadGoal();
+      },
+    },
+  },
   mounted() {
-  this.fetchProducts();
-  window.addEventListener('open-goal-modal', this.openGoalModal);
-  
-  // Cargar meta guardada si existe
-  try {
-    const saved = localStorage.getItem('tienda_goal');
-    if (saved) this.currentGoal = JSON.parse(saved);
-  } catch (e) {}
+    this.fetchProducts();
+    window.addEventListener('open-goal-modal', this.openGoalModal);
+    this.loadGoal();
   },
   beforeUnmount() {
-    // ✅ Vue 3 usa beforeUnmount (no beforeDestroy)
     window.removeEventListener('open-goal-modal', this.openGoalModal);
   },
   methods: {
+    loadGoal() {
+      if (!this.currentAccountId) return;
+      try {
+        const saved = localStorage.getItem(this.goalStorageKey);
+        if (saved) {
+          this.currentGoal = JSON.parse(saved);
+        } else {
+          this.currentGoal = { month: 'Agosto', amount: 15000 };
+        }
+      } catch (e) {
+        console.error('Error loading goal:', e);
+        this.currentGoal = { month: 'Agosto', amount: 15000 };
+      }
+    },
     calculateMargin(product) {
       if (!product.price || product.price == 0) return 0;
       return (((product.price - product.cost) / product.price) * 100).toFixed(1);
@@ -318,10 +337,8 @@ export default {
         await axios.delete(`/api/v1/accounts/${this.currentAccountId}/products/${this.productToDelete.id}`, {
           headers: getAuthHeaders(),
         });
-        // ✅ Eliminar localmente primero (feedback inmediato)
         this.products = this.products.filter(p => p.id !== this.productToDelete.id);
         this.$toast.success('Producto eliminado');
-        // Refrescar desde servidor por si acaso
         await this.fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -397,16 +414,14 @@ export default {
       this.showGoalModal = false;
     },
     saveGoal() {
-  this.currentGoal = { ...this.goalForm };
-  localStorage.setItem('tienda_goal', JSON.stringify(this.currentGoal));
-  window.dispatchEvent(new CustomEvent('goal-updated'));
-  this.closeGoalModal();
-  this.$toast.success('Meta actualizada');
-},
-    debounceSearch: debounce(function () {
-      // Si tu ProductAPI soporte búsqueda, úsala aquí
-      // Por ahora solo filtra el array local
-    }, 300),
+      this.currentGoal = { ...this.goalForm };
+      localStorage.setItem(this.goalStorageKey, JSON.stringify(this.currentGoal));
+      window.dispatchEvent(new CustomEvent('goal-updated', {
+        detail: { accountId: this.currentAccountId }
+      }));
+      this.closeGoalModal();
+      this.$toast.success('Meta actualizada');
+    },
   },
 };
 </script>

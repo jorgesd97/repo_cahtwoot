@@ -1,0 +1,381 @@
+{
+  "year": 2026,
+  "country": "PE",
+  "categories": {
+    "national": {
+      "label": "Feriado Nacional",
+      "color": "#EF4444",
+      "bg": "rgba(239, 68, 68, 0.12)",
+      "border": "rgba(239, 68, 68, 0.25)",
+      "text": "#FCA5A5",
+      "priority": 1
+    },
+    "religious": {
+      "label": "Religioso",
+      "color": "#F59E0B",
+      "bg": "rgba(245, 158, 11, 0.12)",
+      "border": "rgba(245, 158, 11, 0.25)",
+      "text": "#FCD34D",
+      "priority": 2
+    },
+    "cultural": {
+      "label": "Cultural Peruano",
+      "color": "#8B5CF6",
+      "bg": "rgba(139, 92, 246, 0.12)",
+      "border": "rgba(139, 92, 246, 0.25)",
+      "text": "#C4B5FD",
+      "priority": 3
+    },
+    "professional": {
+      "label": "Día Profesional",
+      "color": "#3B82F6",
+      "bg": "rgba(59, 130, 246, 0.12)",
+      "border": "rgba(59, 130, 246, 0.25)",
+      "text": "#93C5FD",
+      "priority": 4
+    },
+    "commercial": {
+      "label": "Comercial / Cyber",
+      "color": "#EC4899",
+      "bg": "rgba(236, 72, 153, 0.12)",
+      "border": "rgba(236, 72, 153, 0.25)",
+      "text": "#F9A8D4",
+      "priority": 5
+    },
+    "custom": {
+      "label": "Propio",
+      "color": "#14B8A6",
+      "bg": "rgba(20, 184, 166, 0.15)",
+      "border": "rgba(20, 184, 166, 0.25)",
+      "text": "#5EEAD4",
+      "priority": 6
+    }
+  },
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "title": "Año Nuevo",
+      "category": "national"
+    },
+    {
+      "date": "2026-02-07",
+      "title": "Día del Pisco Sour",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-02-07",
+      "title": "Cyber Pisco Sour",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-02-14",
+      "title": "Día de San Valentín",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-02-14",
+      "title": "Cyber San Valentín",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-03-08",
+      "title": "Día Internacional de la Mujer",
+      "category": "professional"
+    },
+    {
+      "date": "2026-03-08",
+      "title": "Cyber Día de la Mujer",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-03-14",
+      "title": "Día del Pi / Matemática",
+      "category": "professional"
+    },
+    {
+      "date": "2026-03-19",
+      "title": "Día de San José",
+      "category": "religious"
+    },
+    {
+      "date": "2026-04-02",
+      "title": "Jueves Santo",
+      "category": "religious"
+    },
+    {
+      "date": "2026-04-03",
+      "title": "Viernes Santo",
+      "category": "religious"
+    },
+    {
+      "date": "2026-04-07",
+      "title": "Día Mundial de la Salud",
+      "category": "professional"
+    },
+    {
+      "date": "2026-04-22",
+      "title": "Día de la Tierra",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-04-23",
+      "title": "Día del Idioma / del Libro",
+      "category": "professional"
+    },
+    {
+      "date": "2026-05-01",
+      "title": "Día del Trabajo",
+      "category": "national"
+    },
+    {
+      "date": "2026-05-04",
+      "title": "Star Wars Day / Ofertas",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-05-10",
+      "title": "Día de la Madre",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-05-10",
+      "title": "Cyber Día de la Madre",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-05-12",
+      "title": "Día Internacional de la Enfermera",
+      "category": "professional"
+    },
+    {
+      "date": "2026-05-31",
+      "title": "Día Mundial sin Tabaco",
+      "category": "professional"
+    },
+    {
+      "date": "2026-06-05",
+      "title": "Día Mundial del Medio Ambiente",
+      "category": "professional"
+    },
+    {
+      "date": "2026-06-07",
+      "title": "Día de la Bandera",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-06-08",
+      "title": "Día Mundial de los Océanos",
+      "category": "professional"
+    },
+    {
+      "date": "2026-06-08",
+      "title": "Día del Ingeniero",
+      "category": "professional"
+    },
+    {
+      "date": "2026-06-21",
+      "title": "Día del Padre",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-06-21",
+      "title": "Día Mundial de la Música",
+      "category": "professional"
+    },
+    {
+      "date": "2026-06-21",
+      "title": "Cyber Día del Padre",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-06-24",
+      "title": "Día del Campesino / Inti Raymi",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-06-28",
+      "title": "Día del Ceviche",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-06-29",
+      "title": "San Pedro y San Pablo",
+      "category": "religious"
+    },
+    {
+      "date": "2026-07-04",
+      "title": "Día del Amigo",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-07-04",
+      "title": "Cyber Día del Amigo",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-07-06",
+      "title": "Día del Maestro",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-07-19",
+      "title": "Día del Pollo a la Brasa",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-07-19",
+      "title": "Cyber Pollo a la Brasa",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-07-28",
+      "title": "Fiestas Patrias",
+      "category": "national"
+    },
+    {
+      "date": "2026-07-29",
+      "title": "Día de la Independencia",
+      "category": "national"
+    },
+    {
+      "date": "2026-08-09",
+      "title": "Día Internacional de los Pueblos Indígenas",
+      "category": "professional"
+    },
+    {
+      "date": "2026-08-12",
+      "title": "Día Internacional de la Juventud",
+      "category": "professional"
+    },
+    {
+      "date": "2026-08-19",
+      "title": "Día Mundial de la Asistencia Humanitaria",
+      "category": "professional"
+    },
+    {
+      "date": "2026-08-30",
+      "title": "Santa Rosa de Lima",
+      "category": "religious"
+    },
+    {
+      "date": "2026-09-10",
+      "title": "Día Mundial de la Prevención del Suicidio",
+      "category": "professional"
+    },
+    {
+      "date": "2026-09-15",
+      "title": "Día del Cliente",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-09-21",
+      "title": "Día Internacional de la Paz",
+      "category": "professional"
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Día del Periodista",
+      "category": "professional"
+    },
+    {
+      "date": "2026-10-05",
+      "title": "Día Mundial de los Docentes",
+      "category": "professional"
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Combate de Angamos",
+      "category": "national"
+    },
+    {
+      "date": "2026-10-16",
+      "title": "Día Mundial de la Alimentación",
+      "category": "professional"
+    },
+    {
+      "date": "2026-10-24",
+      "title": "Día de las Naciones Unidas",
+      "category": "professional"
+    },
+    {
+      "date": "2026-10-31",
+      "title": "Día de la Canción Criolla",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-10-31",
+      "title": "Cyber Halloween",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-11-01",
+      "title": "Día de Todos los Santos",
+      "category": "religious"
+    },
+    {
+      "date": "2026-11-02",
+      "title": "Día de los Difuntos",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-11-11",
+      "title": "Singles Day / Día del Shopping",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "Día de la Industrialización de la Pesca",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "Día Internacional de la Eliminación de la Violencia contra la Mujer",
+      "category": "professional"
+    },
+    {
+      "date": "2026-11-27",
+      "title": "Black Friday",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-11-30",
+      "title": "Cyber Monday",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-12-01",
+      "title": "Día Mundial del SIDA",
+      "category": "professional"
+    },
+    {
+      "date": "2026-12-08",
+      "title": "Inmaculada Concepción",
+      "category": "religious"
+    },
+    {
+      "date": "2026-12-10",
+      "title": "Día de los Derechos Humanos",
+      "category": "professional"
+    },
+    {
+      "date": "2026-12-24",
+      "title": "Nochebuena",
+      "category": "cultural"
+    },
+    {
+      "date": "2026-12-24",
+      "title": "Cyber Navidad",
+      "category": "commercial"
+    },
+    {
+      "date": "2026-12-25",
+      "title": "Navidad",
+      "category": "national"
+    },
+    {
+      "date": "2026-12-31",
+      "title": "Año Nuevo / Nochevieja",
+      "category": "cultural"
+    }
+  ]
+}

@@ -1,29 +1,78 @@
 <template>
   <div class="w-full">
-    <!-- TOOLBAR -->
-    <div class="p-4 flex justify-between items-center border-b border-[#2A2E33] bg-[#151718]">
-            <div class="relative w-72">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <input 
-          type="text" 
-          placeholder="Buscar Nro de orden..."
-          class="bg-[#1C1E23] border-0 text-slate-200 w-full rounded-lg py-2 pl-10 pr-4 text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 transition"
-          v-model="searchQuery"
-          @input="debounceSearch"
+    <!-- TOOLBAR CON FILTROS -->
+    <div class="p-4 flex flex-wrap justify-between items-end gap-3 border-b border-[#2A2E33] bg-[#151718]">
+      <div class="flex items-end gap-3 flex-wrap">
+        <!-- Filtro por fecha de venta -->
+        <div>
+          <label class="block text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Fecha de Venta</label>
+          <input
+            v-model="filterDate"
+            type="date"
+            class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none w-36"
+            @change="fetchOrders"
+          >
+        </div>
+
+        <!-- Filtro por estado -->
+        <div>
+          <label class="block text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Estado</label>
+          <div class="relative">
+            <select
+              v-model="filterStatus"
+              class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg pl-3 pr-8 py-2 text-sm text-white focus:border-teal-500 focus:outline-none custom-select"
+              @change="fetchOrders"
+            >
+              <option value="">Todos</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregado">Entregado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Búsqueda SIN LUPA -->
+        <div>
+          <label class="block text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Buscar</label>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="orden, cliente, teléfono..."
+            class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-teal-500 focus:outline-none w-56"
+            @input="debounceSearch"
+          >
+        </div>
+
+        <!-- Limpiar filtros -->
+        <button
+          v-if="hasActiveFilters"
+          class="text-xs text-teal-400 hover:text-teal-300 underline pb-2"
+          @click="clearFilters"
         >
+          Limpiar
+        </button>
       </div>
-      <!-- BOTÓN REFRESH -->
-      <button 
-  @click="fetchOrders()"
-  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
-  title="Refrescar"
->
-  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-  </svg>
-</button>
+
+      <div class="flex items-center gap-3 pb-0">
+        <!-- Contador -->
+        <div class="text-sm text-gray-400">
+          {{ orders.length }} orden{{ orders.length !== 1 ? 'es' : '' }}
+        </div>
+        <!-- BOTÓN REFRESH -->
+        <button 
+          @click="fetchOrders()"
+          class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
+          title="Refrescar"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- TABLA -->
@@ -32,6 +81,7 @@
         <thead class="bg-[#151718] border-b border-[#2A2E33] text-xs text-gray-500 uppercase tracking-wide">
           <tr>
             <th class="px-5 py-4 font-medium">Nro Orden</th>
+            <th class="px-5 py-4 font-medium">Fecha Venta</th>
             <th class="px-5 py-4 font-medium">Estado</th>
             <th class="px-5 py-4 font-medium">Fecha Entrega</th>
             <th class="px-5 py-4 font-medium">Pedido</th>
@@ -44,6 +94,10 @@
             <td class="px-5 py-4">
               <div class="font-medium text-gray-200">{{ order.order_number }}</div>
               <div class="text-[10px] text-gray-500">{{ formatDateShort(order.created_at) }}</div>
+            </td>
+            <td class="px-5 py-4">
+              <div class="text-teal-400 text-xs font-medium">{{ formatDateLima(order.created_at) }}</div>
+              <div class="text-[10px] text-gray-500">{{ formatTimeLima(order.created_at) }}</div>
             </td>
             <td class="px-5 py-4">
               <span
@@ -65,26 +119,25 @@
                   v-if="order.status === 'pendiente'"
                   @click="updateStatus(order.id, 'enviado')"
                   class="text-gray-400 hover:text-teal-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] w-28"
-                  >
+                >
                   Marcar Enviado
                 </button>
                 <button
                   v-if="order.status === 'enviado'"
                   @click="updateStatus(order.id, 'entregado')"
                   class="text-gray-400 hover:text-green-400 transition bg-[#212529] px-3 py-1.5 rounded border border-[#2A2E33] text-[10px] w-28"
-                  >
+                >
                   Marcar Entregado
                 </button>
                 <button
                   v-if="order.status !== 'cancelado' && order.status !== 'entregado'"
                   @click="confirmCancelOrder(order)"
                   class="text-red-400 hover:text-red-300 text-[10px] uppercase font-bold mt-1 transition text-right w-28"
-                  >
+                >
                   Cancelar
                 </button>
-                <!-- ✅ ELIMINAR: solo visible si está cancelado -->
-                                <button
-                   v-if="order.status === 'cancelado'"
+                <button
+                  v-if="order.status === 'cancelado'"
                   @click="confirmDeleteOrder(order)"
                   class="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-400 transition hover:underline"
                 >
@@ -97,7 +150,7 @@
             </td>
           </tr>
           <tr v-if="orders.length === 0">
-            <td colspan="6" class="px-5 py-8 text-center text-gray-500">
+            <td colspan="7" class="px-5 py-8 text-center text-gray-500">
               No hay órdenes registradas.
             </td>
           </tr>
@@ -213,6 +266,8 @@ export default {
     return {
       orders: [],
       searchQuery: '',
+      filterDate: '',
+      filterStatus: '',
       isLoading: false,
       showCancelModal: false,
       orderToCancel: null,
@@ -224,6 +279,9 @@ export default {
     ...mapGetters({
       accountId: 'getCurrentAccountId',
     }),
+    hasActiveFilters() {
+      return this.filterDate || this.filterStatus || this.searchQuery;
+    },
   },
   mounted() {
     this.fetchOrders();
@@ -241,11 +299,15 @@ export default {
         window.dispatchEvent(new CustomEvent('open-goal-modal'));
       }, 100);
     },
+
     async fetchOrders() {
       this.isLoading = true;
       try {
         const params = {};
         if (this.searchQuery) params.q = this.searchQuery;
+        if (this.filterDate) params.created_date = this.filterDate;
+        if (this.filterStatus) params.status = this.filterStatus;
+
         const { data } = await axios.get(`/api/v1/accounts/${this.accountId}/orders`, {
           params,
           headers: getAuthHeaders(),
@@ -258,13 +320,53 @@ export default {
         this.isLoading = false;
       }
     },
+
     debounceSearch: debounce(function () {
       this.fetchOrders();
     }, 300),
+
+    clearFilters() {
+      this.filterDate = '';
+      this.filterStatus = '';
+      this.searchQuery = '';
+      this.fetchOrders();
+    },
+
     formatDateShort(dateStr) {
+      if (!dateStr) return '';
       const d = new Date(dateStr);
       return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
     },
+
+    formatDateLima(utcDate) {
+      if (!utcDate) return '';
+      try {
+        const date = new Date(utcDate);
+        return new Intl.DateTimeFormat('es-PE', {
+          timeZone: 'America/Lima',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        }).format(date);
+      } catch (e) {
+        return utcDate;
+      }
+    },
+
+    formatTimeLima(utcDate) {
+      if (!utcDate) return '';
+      try {
+        const date = new Date(utcDate);
+        return new Intl.DateTimeFormat('es-PE', {
+          timeZone: 'America/Lima',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date);
+      } catch (e) {
+        return '';
+      }
+    },
+
     formatDeliveryDate(order) {
       if (!order.delivery_date) return 'Inmediato (Email)';
       const d = new Date(order.delivery_date);
@@ -272,6 +374,7 @@ export default {
       const hEnd = (d.getHours() + 4).toString().padStart(2, '0');
       return `${d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}, ${h}:00 - ${hEnd}:00`;
     },
+
     formatItems(itemsJson) {
       try {
         const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
@@ -281,6 +384,7 @@ export default {
         return itemsJson || '—';
       }
     },
+
     statusClass(status) {
       const map = {
         pendiente: 'bg-yellow-900/30 border-yellow-800 text-yellow-500',
@@ -294,9 +398,9 @@ export default {
     async updateStatus(id, newStatus) {
       const order = this.orders.find(o => o.id === id);
       const oldStatus = order ? order.status : null;
-      
+
       if (order) order.status = newStatus;
-      
+
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${id}`, {
           order: { status: newStatus },
@@ -317,9 +421,9 @@ export default {
       if (!this.orderToCancel) return;
       const order = this.orders.find(o => o.id === this.orderToCancel.id);
       const oldStatus = order ? order.status : null;
-      
+
       if (order) order.status = 'cancelado';
-      
+
       try {
         await axios.patch(`/api/v1/accounts/${this.accountId}/orders/${this.orderToCancel.id}`, {
           order: { status: 'cancelado' },
@@ -359,3 +463,23 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Oculta la flecha nativa del select en TODOS los navegadores */
+.custom-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
+/* Icono del calendario en blanco para el tema oscuro */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+</style>

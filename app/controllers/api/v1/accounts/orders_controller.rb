@@ -6,8 +6,20 @@ module Api
 
         def index
           @orders = Current.account.orders.order(created_at: :desc)
-          @orders = @orders.where(status: params[:status]) if params[:status].present?
-          @orders = @orders.where('order_number ILIKE ?', "%#{params[:q]}%") if params[:q].present?
+
+          # Filtros
+          @orders = @orders.by_status(params[:status]) if params[:status].present?
+          @orders = @orders.by_created_date(params[:created_date]) if params[:created_date].present?
+
+          # Búsqueda por texto
+          if params[:q].present?
+            q = "%#{params[:q]}%"
+            @orders = @orders.where(
+              'order_number ILIKE ? OR customer_name ILIKE ? OR customer_phone ILIKE ?',
+              q, q, q
+            )
+          end
+
           render json: @orders
         end
 
@@ -46,7 +58,7 @@ module Api
         def order_params
           params.require(:order).permit(
             :contact_id, :inbox_id, :status, :delivery_type,
-            :delivery_date, :delivery_address, :delivery_reference,
+            :delivery_date, :delivery_hour, :delivery_address, :delivery_reference,
             :customer_name, :customer_phone, :customer_email,
             :total_amount, :items_json, :notes
           )

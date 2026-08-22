@@ -1248,6 +1248,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_000001) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "delivery_hour"
     t.index ["account_id", "order_number"], name: "index_orders_on_account_id_and_order_number", unique: true
     t.index ["account_id", "status"], name: "index_orders_on_account_id_and_status"
     t.index ["account_id"], name: "index_orders_on_account_id"

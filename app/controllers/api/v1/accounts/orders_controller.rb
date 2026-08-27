@@ -7,9 +7,22 @@ module Api
         def index
           @orders = Current.account.orders.order(created_at: :desc)
 
-          # Filtros
+          # Filtro por estado
           @orders = @orders.by_status(params[:status]) if params[:status].present?
-          @orders = @orders.by_created_date(params[:created_date]) if params[:created_date].present?
+
+          # Filtro por rango de fechas (nuevo)
+          if params[:start_date].present? && params[:end_date].present?
+            begin
+              start_d = Date.parse(params[:start_date])
+              end_d   = Date.parse(params[:end_date])
+              @orders = @orders.where(created_at: start_d.beginning_of_day..end_d.end_of_day)
+            rescue ArgumentError
+              return render json: { error: 'Formato de fecha inválido. Use YYYY-MM-DD' }, status: :bad_request
+            end
+          elsif params[:created_date].present?
+            # Filtro por fecha única (existente)
+            @orders = @orders.by_created_date(params[:created_date])
+          end
 
           # Búsqueda por texto
           if params[:q].present?

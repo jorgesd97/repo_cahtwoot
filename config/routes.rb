@@ -55,11 +55,18 @@ Rails.application.routes.draw do
             resource :contact_merge, only: [:create]
           end
           resource :bulk_actions, only: [:create]
+          resources :sales_goals, only: [:index, :show, :create, :update, :destroy] do
+          collection do
+            get :current
+          end
+        end
           resources :products, only: [:index, :show, :create, :update, :destroy] do
           collection do
             post :import
           end
         end
+          get 'calendar', to: 'calendar#index'
+          resources :calendar, only: [:index, :create, :update, :destroy]
           resource :product_import, only: [:create], controller: 'product_imports'
           resources :orders, only: [:index, :show, :create, :update, :destroy]
           resource :onboarding, only: [:update] do

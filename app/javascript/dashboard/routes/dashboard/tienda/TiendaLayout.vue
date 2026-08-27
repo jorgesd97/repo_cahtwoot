@@ -20,7 +20,6 @@
             <line x1="8" y1="2" x2="8" y2="6" stroke-width="2" />
             <line x1="3" y1="10" x2="21" y2="10" stroke-width="2" />
           </svg>
-          <!-- Badge si hay días propios -->
           <span
             v-if="hasPropias"
             class="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full border-2 border-[#0f1112]"
@@ -30,14 +29,16 @@
         <!-- WIDGET META -->
         <div class="bg-[#151718] border border-[#2A2E33] rounded-lg p-3 flex items-center space-x-4 shadow-sm">
           <div>
-            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">META DE {{ currentGoal.month.toUpperCase() }}</div>
+            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+              META DE {{ currentMonthName.toUpperCase() }}
+            </div>
             <div class="font-bold text-teal-400 text-xl">{{ formattedAmount }}</div>
           </div>
           <div class="w-px h-8 bg-[#2A2E33]" />
           <button
             class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-teal-400 bg-[#1C1E23] hover:bg-[#252830] border border-[#2A2E33] hover:border-teal-500/30 transition"
             title="Editar meta"
-            @click="triggerEditGoal"
+            @click="openGoalModal"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -72,36 +73,117 @@
 
     <!-- 🗓️ MODAL CALENDARIO -->
     <calendar-modal
-      :show.sync="showCalendar"
+      :show="showCalendar"
       :account-id="accountId"
       @close="showCalendar = false"
     />
+
+    <!-- 💰 MODAL META -->
+    <div v-if="showGoalModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-[#1C1E23] border border-[#2A2E33] rounded-lg w-[400px] flex flex-col shadow-2xl">
+        <div class="p-5 border-b border-[#2A2E33] flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">Configurar Meta Mensual</h2>
+          <button @click="closeGoalModal" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 space-y-4 text-sm">
+          <div>
+            <label class="block text-gray-300 mb-1">Mes</label>
+            <select v-model="goalForm.month" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none">
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Año</label>
+            <input v-model.number="goalForm.year" type="number" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 focus:border-teal-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Monto Objetivo (S/)</label>
+            <input v-model.number="goalForm.amount" type="number" step="0.01" class="bg-[#151718] border border-[#2A2E33] text-white w-full rounded py-2 px-3 text-lg font-bold text-teal-400 focus:border-teal-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="p-4 border-t border-[#2A2E33] flex justify-end space-x-3 bg-[#151718] rounded-b-lg">
+          <button type="button" @click="closeGoalModal" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+          <button
+            type="button"
+            @click="saveGoal"
+            class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded text-sm font-medium transition"
+          >
+            Guardar Meta
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
+import axios from 'axios';
 import CalendarModal from './components/CalendarModal.vue';
+
+const MONTH_NAMES = [
+  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+];
+
+function getAuthHeaders() {
+  try {
+    const raw = localStorage.getItem('auth_headers');
+    if (raw) {
+      const h = JSON.parse(raw);
+      if (h['access-token']) {
+        return {
+          'access-token': h['access-token'],
+          'client': h['client'],
+          'uid': h['uid'],
+        };
+      }
+    }
+  } catch (e) {}
+  try {
+    const match = document.cookie.match(/cw_d_session_info=([^;]+)/);
+    if (match) {
+      const data = JSON.parse(decodeURIComponent(match[1]));
+      return {
+        'access-token': data['access-token'],
+        'client': data['client'],
+        'uid': data['uid'],
+      };
+    }
+  } catch (e) {}
+  return {};
+}
 
 export default {
   name: 'TiendaLayout',
   components: { CalendarModal },
   data() {
+    const now = new Date();
     return {
-      currentGoal: { month: 'Agosto', amount: 15000 },
+      currentGoal: { id: null, month: now.getMonth() + 1, year: now.getFullYear(), amount: 0, currency: 'S/' },
       showCalendar: false,
       hasPropias: false,
+      showGoalModal: false,
+      goalForm: { month: String(now.getMonth() + 1), year: now.getFullYear(), amount: 0 },
     };
   },
   computed: {
     ...mapGetters({
       accountId: 'getCurrentAccountId',
     }),
-    goalStorageKey() {
-      return `tienda_goal_account_${this.accountId}`;
-    },
-    propiasStorageKey() {
-      return `tienda_propias_2026_account_${this.accountId}`;
+    currentMonthName() {
+      return MONTH_NAMES[this.currentGoal.month - 1] || '—';
     },
     catalogoRoute() {
       return `/app/accounts/${this.accountId}/tienda/catalogo`;
@@ -127,60 +209,96 @@ export default {
     accountId: {
       immediate: true,
       handler() {
-        this.loadGoal();
-        this.checkPropias();
+        if (this.accountId) {
+          this.loadGoal();
+          this.checkPropias();
+        }
       },
     },
   },
   mounted() {
-    this.loadGoal();
-    this.checkPropias();
-    window.addEventListener('goal-updated', this.onGoalUpdated);
+    if (this.accountId) {
+      this.loadGoal();
+      this.checkPropias();
+    }
     window.addEventListener('propias-updated', this.onPropiasUpdated);
   },
   beforeUnmount() {
-    window.removeEventListener('goal-updated', this.onGoalUpdated);
     window.removeEventListener('propias-updated', this.onPropiasUpdated);
   },
   methods: {
-    loadGoal() {
+    async loadGoal() {
       if (!this.accountId) return;
       try {
-        const saved = localStorage.getItem(this.goalStorageKey);
-        if (saved) {
-          this.currentGoal = JSON.parse(saved);
-        } else {
-          // Default si no hay nada guardado para esta cuenta
-          this.currentGoal = { month: 'Agosto', amount: 15000 };
+        const res = await axios.get(
+          `/api/v1/accounts/${this.accountId}/sales_goals/current`,
+          { headers: getAuthHeaders() }
+        );
+        if (res.data && res.data.amount !== undefined) {
+          this.currentGoal = {
+            id:       res.data.id || null,
+            month:    res.data.month || new Date().getMonth() + 1,
+            year:     res.data.year || new Date().getFullYear(),
+            amount:   parseFloat(res.data.amount) || 0,
+            currency: res.data.currency || 'S/',
+          };
         }
       } catch (e) {
-        console.error('Error loading goal:', e);
-        this.currentGoal = { month: 'Agosto', amount: 15000 };
+        console.error('Error cargando meta:', e);
+        const now = new Date();
+        this.currentGoal = { id: null, month: now.getMonth() + 1, year: now.getFullYear(), amount: 0, currency: 'S/' };
       }
     },
-    onGoalUpdated(event) {
-      // Solo recargar si el evento es para la cuenta actual
-      if (!event.detail || event.detail.accountId === this.accountId) {
-        this.loadGoal();
-      }
+    openGoalModal() {
+      this.goalForm = {
+        month: String(this.currentGoal.month || new Date().getMonth() + 1),
+        year: this.currentGoal.year || new Date().getFullYear(),
+        amount: this.currentGoal.amount || 0,
+      };
+      this.showGoalModal = true;
     },
-    triggerEditGoal() {
-      window.dispatchEvent(new CustomEvent('open-goal-modal'));
+    closeGoalModal() {
+      this.showGoalModal = false;
+    },
+    async saveGoal() {
+      if (!this.accountId) return;
+      try {
+        const payload = {
+          sales_goal: {
+            year:     this.goalForm.year,
+            month:    parseInt(this.goalForm.month),
+            amount:   this.goalForm.amount,
+            currency: 'S/',
+          }
+        };
+        const res = await axios.post(
+          `/api/v1/accounts/${this.accountId}/sales_goals`,
+          payload,
+          { headers: getAuthHeaders() }
+        );
+        this.closeGoalModal();
+        // Actualizar con la respuesta del servidor
+        if (res.data) {
+          this.currentGoal = {
+            id:       res.data.id,
+            month:    res.data.month,
+            year:     res.data.year,
+            amount:   parseFloat(res.data.amount) || 0,
+            currency: res.data.currency || 'S/',
+          };
+        }
+        if (this.$toast) this.$toast.success('Meta guardada');
+      } catch (e) {
+        console.error('Error guardando meta:', e);
+        const msg = e.response?.data?.error?.join(', ') || 'No se pudo guardar la meta';
+        if (this.$toast) this.$toast.error(msg);
+        else alert(msg);
+      }
     },
     checkPropias() {
-      if (!this.accountId) {
-        this.hasPropias = false;
-        return;
-      }
-      try {
-        const saved = localStorage.getItem(this.propiasStorageKey);
-        this.hasPropias = saved ? JSON.parse(saved).length > 0 : false;
-      } catch (e) {
-        this.hasPropias = false;
-      }
+      this.hasPropias = false;
     },
     onPropiasUpdated(event) {
-      // Solo recargar si el evento es para la cuenta actual
       if (!event.detail || event.detail.accountId === this.accountId) {
         this.checkPropias();
       }

@@ -133,6 +133,8 @@ class Account < ApplicationRecord
   has_many :working_hours, dependent: :destroy_async
   has_many :products, dependent: :destroy
   has_many :orders, dependent: :destroy
+  has_many :calendar_events, dependent: :destroy
+  has_many :sales_goals, dependent: :destroy
   
   has_one_attached :contacts_export
 

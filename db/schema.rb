@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_08_11_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_26_000004) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -288,6 +288,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_000001) do
     t.datetime "updated_at", null: false
     t.boolean "active", default: true, null: false
     t.index ["account_id"], name: "index_automation_rules_on_account_id"
+  end
+
+  create_table "calendar_events", force: :cascade do |t|
+    t.bigint "account_id"
+    t.integer "year", null: false
+    t.date "date", null: false
+    t.string "name", null: false
+    t.string "event_type", default: "nacional", null: false
+    t.text "description"
+    t.string "color", default: "#f59e0b"
+    t.string "bg"
+    t.string "border"
+    t.string "text_color"
+    t.string "label"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "year", "date"], name: "index_calendar_events_on_account_id_and_year_and_date"
+    t.index ["account_id"], name: "index_calendar_events_on_account_id"
+    t.index ["year", "date"], name: "index_calendar_events_on_year_and_date"
+    t.index ["year", "event_type"], name: "index_calendar_events_on_year_and_event_type"
   end
 
   create_table "calls", force: :cascade do |t|
@@ -1371,6 +1391,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_000001) do
     t.index ["account_id", "metric", "date"], name: "index_rollup_timeseries"
   end
 
+  create_table "sales_goals", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.decimal "amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.string "currency", default: "S/", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "year", "month"], name: "index_sales_goals_on_account_id_and_year_and_month", unique: true
+    t.index ["account_id"], name: "index_sales_goals_on_account_id"
+    t.index ["year", "month"], name: "index_sales_goals_on_year_and_month"
+  end
+
   create_table "sla_events", force: :cascade do |t|
     t.bigint "applied_sla_id", null: false
     t.bigint "conversation_id", null: false
@@ -1541,11 +1574,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_08_11_000001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "calendar_events", "accounts"
   add_foreign_key "inboxes", "portals"
   add_foreign_key "orders", "accounts"
   add_foreign_key "orders", "contacts"
   add_foreign_key "orders", "inboxes"
   add_foreign_key "products", "accounts"
+  add_foreign_key "sales_goals", "accounts"
   add_foreign_key "user_sessions", "users"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").
